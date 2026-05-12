@@ -1,0 +1,1645 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>NEO · Explorar · Prototipo dev</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Wix+Madefor+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   NEO · Explorar — Prototipo interactivo (pixel perfect)
+   Tokens y estructura tomados directo de Figma:
+     · Explorar             → 17673:9113
+     · Sheet (default)      → 17556:27978
+     · Sheet (con Aplicar)  → 17694:26888
+     · Loader               → 17694:39285
+   ===================================================================== */
+
+:root{
+  /* Surfaces */
+  --surface-50:#0F1217;   --surface-100:#161A22;
+  --surface-200:#1A1E26;  --surface-300:#212631;
+  --surface-400:#242A36;  --surface-500:#3D475A;
+  --surface-800:#BBBDC1;  --surface-950:#FFFFFF;
+  /* Borders */
+  --border-50:#33384A;    --border-100:#444D62;   --border-200:#565F7D;
+  /* Brand */
+  --secondary-100:#0021AF; --secondary-300:#002EF7;
+  --secondary-400:#3358F9; --secondary-600:#8A9FFB;
+  /* Text */
+  --text-800:#E5E5E5; --text-900:#F5F5F5; --text-950:#FEFEFF;
+  /* Success */
+  --success-50:#14532D; --success-500:#BDE986;
+  --success-800:#EFFFBA; --success-bg:#1C2B21;
+  /* Info (Recuperar bar) */
+  --info-300:#0B8DCD;
+  /* Type */
+  --display:'Sora', ui-sans-serif, system-ui;
+  --body:'Wix Madefor Display', ui-sans-serif, system-ui;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#06070a;color:var(--text-950);font-family:var(--body);-webkit-font-smoothing:antialiased}
+
+body{
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  padding:48px 16px;
+  background:
+    radial-gradient(900px 600px at 80% -10%, rgba(0,46,247,.18), transparent 60%),
+    radial-gradient(700px 500px at -10% 100%, rgba(82,115,250,.10), transparent 60%),
+    #06070a;
+}
+
+/* ===================== RESET BUTTON (fuera del device) ===================== */
+.reset-btn{
+  position:fixed; top:24px; right:24px; z-index:1000;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 16px; border-radius:999px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  color:var(--text-950); font-family:var(--display); font-weight:500; font-size:13px;
+  cursor:pointer; backdrop-filter:blur(12px);
+  transition:background .2s ease, transform .15s ease;
+}
+.reset-btn:hover{background:rgba(255,255,255,.14)}
+.reset-btn:active{transform:scale(.97)}
+.reset-btn svg{width:14px; height:14px}
+
+/* ===================== DEVICE FRAME ===================== */
+.device{
+  width:390px; height:844px;
+  border-radius:42px; position:relative; overflow:hidden;
+  background:var(--surface-50);
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.55),
+    0 0 0 8px #1c1f26,
+    0 0 0 9px #2a2f3a,
+    inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.notch{
+  position:absolute; left:50%; top:10px; transform:translateX(-50%);
+  width:118px; height:32px; border-radius:18px; background:#000; z-index:80;
+}
+.screen{position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden}
+
+/* ===================== STATUS BAR (siempre visible, top fijo) ===================== */
+.status-bar-area{
+  position:absolute;
+  top:0; left:0; right:0;
+  height:54px;
+  z-index:100;
+  pointer-events:none;
+  padding-top:10px;
+  /* gradiente que arranca azul saturado y se difumina hacia abajo
+     (los últimos 20% transparentes para que el sticky pueda asomar limpio) */
+  background:linear-gradient(180deg,
+    var(--secondary-100) 0%,
+    rgba(0,33,175,0.85) 45%,
+    rgba(0,33,175,0.25) 80%,
+    rgba(0,33,175,0) 100%
+  );
+}
+.status-bar{
+  display:flex; height:44px; align-items:center;
+}
+.status-bar .left, .status-bar .right{flex:1; padding:0 24px; display:flex; align-items:center; height:100%}
+.status-bar .left{justify-content:flex-start}
+.status-bar .right{justify-content:flex-end; gap:8px}
+.status-bar .time{
+  font-family:'Helvetica',ui-sans-serif,system-ui;
+  font-size:17px; line-height:22px; color:var(--text-950);
+  letter-spacing:-0.408px;
+}
+
+/* ===================== HEADER QUE SCROLLEA (tabs + título) =====================
+   Vive dentro del scroll y se va con el contenido cuando bajás. */
+.header-scroll{
+  padding-top:54px;
+  background:linear-gradient(180deg,
+    rgba(0,33,175,0.40) 0%,
+    rgba(0,33,175,0.10) 30%,
+    rgba(0,33,175,0) 70%,
+    var(--surface-50) 100%
+  );
+}
+
+/* ===================== STICKY SEDE BAR =====================
+   El selector de sede se ancla al top:54px cuando el usuario empieza a scrollear.
+   Background con fade al bottom para que el contenido aparezca difuminado debajo. */
+.sede-sticky-wrap{
+  position:sticky;
+  top:54px;
+  z-index:50;
+  padding:12px 16px 24px;
+  background:linear-gradient(180deg,
+    rgba(15,18,23,0.95) 0%,
+    rgba(15,18,23,0.88) 40%,
+    rgba(15,18,23,0.55) 75%,
+    rgba(15,18,23,0) 100%
+  );
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  /* Mask: que el blur efectivo siga la misma curva del gradient,
+     así no queda una línea visible al final del sticky */
+  -webkit-mask-image:linear-gradient(180deg, #000 0%, #000 60%, rgba(0,0,0,0) 100%);
+  mask-image:linear-gradient(180deg, #000 0%, #000 60%, rgba(0,0,0,0) 100%);
+}
+
+/* Tabs — inner wrapper para indicador deslizante */
+.tab-row{
+  padding:16px 16px 0;
+  position:relative;
+}
+.tabs-inner{
+  position:relative;
+  display:flex; gap:6px;
+  align-items:flex-end;
+}
+.tab{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding:4px 12px 12px;
+  background:transparent; border:0; cursor:pointer;
+  font-family:var(--body); font-size:16px; color:var(--text-950);
+  position:relative;
+  transition:opacity .25s ease, font-weight .2s ease;
+}
+.tab.active{font-weight:500; opacity:1}
+.tab:not(.active){font-weight:400; opacity:.3}
+.tab-indicator{
+  position:absolute; bottom:0;
+  left:0;
+  width:calc((100% - 6px) / 2);
+  height:2px;
+  background:var(--surface-950);
+  transform:translateX(0);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  pointer-events:none;
+}
+.tabs-inner.is-digital .tab-indicator{
+  transform:translateX(calc(100% + 6px));
+}
+
+/* Title */
+.title-row{
+  display:flex; align-items:center;
+  padding:24px 16px 0;
+  width:100%;
+}
+.title-row h1{
+  font-family:var(--display); font-weight:600; font-size:24px; line-height:34px;
+  color:var(--text-900); margin:0;
+}
+
+/* Sede selector — dos pills adyacentes con glass effect.
+   Cada pill: gradient sutil + border translúcido + backdrop-filter blur.
+   Esto hace que cuando el sede queda sticky, el contenido se vea difuminado atrás
+   y el pill mismo tenga un trazo "fino" como en el Figma. */
+.sede-filter-row{
+  display:flex; align-items:center;
+  width:100%;
+}
+.sede-cluster{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.sede-pill,
+.detail-pill{
+  background:linear-gradient(180deg,
+    rgba(255,255,255,0.10) 0%,
+    rgba(255,255,255,0.03) 100%
+  );
+  border:1px solid rgba(255,255,255,0.14);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border-radius:9999px;
+}
+.sede-pill{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:11px 12px 11px 18px;
+  cursor:pointer;
+  flex-shrink:0;
+  font:inherit;
+}
+.sede-pill .pin-ico{
+  width:20px; height:20px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.sede-pill .pin-ico svg{width:20px; height:20px; display:block}
+.sede-pill .name{
+  font-family:var(--body); font-weight:700; font-size:14px; line-height:24px;
+  color:var(--text-950); white-space:nowrap;
+}
+.sede-pill .chev{
+  width:24px; height:24px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.sede-pill .chev svg{width:24px; height:24px; display:block}
+.detail-pill{
+  display:inline-flex; align-items:center;
+  padding:11px 16px;
+  cursor:pointer;
+  flex-shrink:0;
+  font:inherit;
+}
+.detail-pill .label{
+  font-family:var(--body); font-weight:500; font-size:14px; line-height:24px;
+  color:var(--text-950); white-space:nowrap;
+}
+
+/* ===================== SCROLL CONTENT ===================== */
+.scroll{
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  background:var(--surface-50);
+  scroll-behavior:smooth;
+  position:relative;
+}
+.scroll::-webkit-scrollbar{display:none}
+
+/* gym-content y digital-content viven en el mismo scroll y se cross-fadean */
+.gym-content,
+.digital-content{
+  padding:12px 24px 140px;  /* 140px abajo para no quedar tapado por el nav (106px + aire) */
+  display:flex; flex-direction:column; gap:64px; align-items:center;
+  transition:opacity .22s ease;
+}
+.digital-content{
+  gap:16px;
+  padding:24px 16px 140px;
+}
+.gym-content[hidden],
+.digital-content[hidden]{display:none}
+
+/* tab switching: cross-fade del contenido */
+.scroll.switching .gym-content,
+.scroll.switching .digital-content{opacity:0}
+
+/* primer paint después del loader: stagger reveal de las secciones */
+.scroll.just-loaded .gym-content > *{
+  opacity:0;
+  animation:fadeUp .45s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.scroll.just-loaded .gym-content > *:nth-child(1){animation-delay:0ms}
+.scroll.just-loaded .gym-content > *:nth-child(2){animation-delay:80ms}
+.scroll.just-loaded .gym-content > *:nth-child(3){animation-delay:160ms}
+.scroll.just-loaded .gym-content > *:nth-child(4){animation-delay:240ms}
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(10px)}
+  to  {opacity:1; transform:translateY(0)}
+}
+
+/* en digital, ocultamos el wrap sticky entero (no aplica el selector de sede) */
+body.is-digital .sede-sticky-wrap{display:none}
+
+/* ===================== BANNER "Tu pase incluye…" ===================== */
+.banner,
+.instruccion-modal{
+  width:358px; min-width:310px;
+  position:relative;
+  border-radius:24px;
+  overflow:hidden;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,0.10) 0%,
+    rgba(255,255,255,0.03) 100%
+  ),
+  linear-gradient(190deg, rgba(17,19,23,.2) 39.76%, rgba(96,111,140,.2) 151.02%);
+  border:1px solid rgba(255,255,255,0.14);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  padding:18px 16px;
+  display:flex; flex-direction:column; gap:12px;
+  align-items:flex-end;
+}
+.instruccion-modal{ margin-top:8px; }
+.banner .blob,
+.instruccion-modal .blob{
+  position:absolute; top:-15px; left:-43px;
+  width:156px; height:227px;
+  pointer-events:none;
+  background:radial-gradient(closest-side, rgba(83,115,250,.45), rgba(0,46,247,.1) 60%, transparent 80%);
+  filter:blur(20px);
+}
+.banner .row,
+.instruccion-modal .row{
+  position:relative; z-index:1;
+  display:flex; gap:13px; align-items:flex-start;
+  width:100%;
+}
+.banner .dot-anim,
+.instruccion-modal .dot-anim{
+  width:24px; height:24px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+.banner .dot-anim::before,
+.banner .dot-anim::after,
+.instruccion-modal .dot-anim::before,
+.instruccion-modal .dot-anim::after{
+  content:""; position:absolute;
+  border-radius:50%;
+  background:#3358F9;
+}
+.banner .dot-anim::before,
+.instruccion-modal .dot-anim::before{
+  width:8px; height:8px;
+  z-index:2;
+}
+.banner .dot-anim::after,
+.instruccion-modal .dot-anim::after{
+  width:24px; height:24px;
+  background:rgba(51,88,249,.30);
+  animation:pulseDot 1.6s ease-out infinite;
+  z-index:1;
+}
+@keyframes pulseDot{
+  0%{transform:scale(.4); opacity:.8}
+  100%{transform:scale(1.2); opacity:0}
+}
+.banner .text-stack,
+.instruccion-modal .text-stack{flex:1; display:flex; flex-direction:column; gap:13px}
+.banner .lead,
+.instruccion-modal .lead{
+  font-family:var(--body); font-weight:700; font-size:14px; line-height:24px;
+  color:var(--text-950); margin:0;
+}
+.banner .chip-row,
+.instruccion-modal .chip-row{display:flex; gap:8px; align-items:flex-end}
+.instruccion-modal .pase-link{
+  position:relative; z-index:1;
+  display:inline-flex; align-items:center; gap:6px;
+  text-decoration:none;
+  font-family:var(--body); font-weight:600; font-size:14px; line-height:20px;
+  color:#8A9FFB;
+  align-self:flex-end;
+}
+.instruccion-modal .pase-link svg{
+  width:18px; height:18px; color:#8A9FFB;
+}
+.chip-pase{
+  display:inline-flex; align-items:center; gap:5.658px;
+  height:31.12px;
+  padding:8.487px 9.902px;
+  border-radius:16.975px;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,0.10) 0%,
+    rgba(255,255,255,0.03) 100%
+  );
+  border:1px solid rgba(255,255,255,0.14);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+}
+.chip-pase .ico{width:14.15px; height:14.15px; display:flex; align-items:center; justify-content:center; color:#fff}
+.chip-pase .label{
+  font-family:var(--display); font-weight:600; font-size:12px; line-height:18px;
+  color:#fff;
+}
+
+/* ===================== SECTION ROW (Entrenar / Recuperar / Espacios) ===================== */
+.service-row{
+  width:100%;
+  display:flex; flex-direction:column; gap:24px;
+}
+.section-header{
+  display:flex; align-items:center; justify-content:space-between;
+  width:100%;
+}
+.title-indicator{
+  display:flex; align-items:center; gap:8px;
+  flex:1; min-width:0;
+}
+.bar{
+  width:4px; height:26px; border-radius:100px;
+  flex-shrink:0;
+}
+.bar-blue{background:var(--secondary-300)}
+.bar-info{background:var(--info-300)}
+.bar-grey{background:var(--border-200)}
+.section-header h3{
+  font-family:var(--display); font-weight:600; font-size:16px; line-height:26px;
+  color:var(--text-900); margin:0;
+}
+.section-header .all{
+  font-family:var(--body); font-weight:500; font-size:14px; line-height:24px;
+  color:var(--text-950); cursor:pointer; white-space:nowrap;
+}
+
+/* Tag "Nuevo" con shimmer */
+.tag-nuevo{
+  display:inline-flex; align-items:center; justify-content:center;
+  position:relative;
+  height:24px; min-width:60px; padding:0 10px;
+  background:var(--success-500);
+  border-radius:8px;
+  overflow:hidden;
+}
+.tag-nuevo .label{
+  position:relative; z-index:1;
+  font-family:var(--body); font-weight:700; font-size:12px; line-height:20px;
+  color:var(--success-bg);
+}
+.tag-nuevo::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.55) 50%, transparent 100%);
+  transform:translateX(-100%);
+  animation:shimmer 2.4s ease-in-out infinite;
+}
+@keyframes shimmer{
+  0%{transform:translateX(-100%)}
+  60%{transform:translateX(100%)}
+  100%{transform:translateX(100%)}
+}
+
+/* ===================== ENTRENAR — Service Cards ===================== */
+.entrenar-col{display:flex; flex-direction:column; gap:18px; width:100%}
+.entrenar-card{
+  position:relative;
+  height:170px;
+  width:100%;
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--secondary-100);
+  display:flex; align-items:center;
+  cursor:pointer;
+}
+.entrenar-card .text-side{
+  flex-shrink:0; width:200px; height:100%;
+  padding:20px 20px 20px 20px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.entrenar-card h4{
+  font-family:var(--display); font-weight:700; font-size:16px; line-height:26px;
+  letter-spacing:.2px; color:#fff; margin:0; white-space:nowrap;
+}
+.entrenar-card p{
+  font-family:var(--body); font-weight:500; font-size:12px; line-height:1.8;
+  color:var(--text-900); opacity:.6; margin:0;
+}
+.entrenar-card .img-side{
+  flex:1; height:100%; position:relative; overflow:hidden;
+}
+.entrenar-card .img-side img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.9;
+}
+.entrenar-card .img-side::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, var(--secondary-100) 0%, rgba(0,33,175,0) 59.55%);
+}
+/* Variante card "Área de cardio y musculación" — azul más oscuro */
+.entrenar-card[data-room="cardio"]{
+  background:#00146E;
+}
+.entrenar-card[data-room="cardio"] .img-side::after{
+  background:linear-gradient(90deg, #00146E 0%, rgba(0,20,110,0) 59.55%);
+}
+/* Badge "Incluido con el pase" sobre la Entrenar card (sólo card "cardio") */
+.entrenar-card .incluido-badge{
+  position:absolute; right:16px; bottom:14px; z-index:2;
+  display:inline-flex; align-items:center; gap:8px;
+  height:24px;
+  background:transparent;
+  pointer-events:none;
+}
+.entrenar-card .incluido-badge .dot-anim{
+  width:17px; height:17px; flex-shrink:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  position:relative;
+}
+.entrenar-card .incluido-badge .dot-anim::before,
+.entrenar-card .incluido-badge .dot-anim::after{
+  content:""; position:absolute; border-radius:50%;
+  background:#3358F9;
+}
+.entrenar-card .incluido-badge .dot-anim::before{
+  width:6px; height:6px; z-index:2;
+}
+.entrenar-card .incluido-badge .dot-anim::after{
+  width:17px; height:17px;
+  background:rgba(51,88,249,.35);
+  animation:pulseDot 1.6s ease-out infinite;
+  z-index:1;
+}
+.entrenar-card .incluido-label{
+  font-family:var(--body); font-weight:600; font-size:12px; line-height:18px;
+  color:#fff; white-space:nowrap;
+}
+
+/* ===================== RECUPERAR — Service Cards (2 cols full bleed) ===================== */
+.recuperar-row{display:flex; gap:18px; width:100%; height:215px}
+.recuperar-card{
+  flex:1; position:relative;
+  border-radius:12px; overflow:hidden;
+  cursor:pointer;
+  display:flex; flex-direction:column; justify-content:flex-end;
+}
+.recuperar-card img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+}
+.recuperar-card::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(5,64,93,0) 46.31%, #05405D 100%);
+}
+.recuperar-card .body{
+  position:relative; z-index:1;
+  padding:14px 20px 16px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.recuperar-card h5{
+  font-family:var(--display); font-weight:700; font-size:14px; line-height:24px;
+  letter-spacing:.2px; color:#fff; margin:0; white-space:nowrap;
+}
+.recuperar-card .desc{
+  font-family:var(--body); font-weight:500; font-size:12px; line-height:20px;
+  color:var(--text-900); margin:0;
+}
+
+/* ===================== ESPACIOS — stack + 2col ===================== */
+.espacios-block{display:flex; flex-direction:column; gap:32px; width:100%}
+.espacios-stack{display:flex; flex-direction:column; gap:18px}
+.espacios-card-stack{
+  position:relative; height:110px; width:100%;
+  border-radius:12px; overflow:hidden;
+  background:#1A1D26;
+  display:flex; align-items:center;
+  cursor:pointer;
+}
+.espacios-card-stack .text-side{
+  flex-shrink:0; width:200px; height:100%;
+  padding:20px;
+  display:flex; flex-direction:column; gap:2px; justify-content:center;
+}
+.espacios-card-stack h5{
+  font-family:var(--display); font-weight:700; font-size:14px; line-height:24px;
+  letter-spacing:.2px; color:#fff; margin:0; white-space:nowrap;
+}
+.espacios-card-stack .desc{
+  font-family:var(--body); font-weight:500; font-size:12px; line-height:1.8;
+  color:var(--text-900); opacity:.6; margin:0;
+}
+.espacios-card-stack .img-side{flex:1; height:100%; position:relative; overflow:hidden}
+.espacios-card-stack .img-side img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.9}
+.espacios-card-stack .img-side::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, #1A1D26 0%, rgba(26,29,38,0) 44.37%);
+}
+
+.espacios-row{display:flex; gap:18px; width:100%; height:211px}
+.espacios-card-vert{
+  flex:1; position:relative;
+  background:#1A1D26;
+  border-radius:12px; overflow:hidden;
+  display:flex; flex-direction:column;
+  cursor:pointer;
+}
+.espacios-card-vert .text-top{
+  flex-shrink:0; height:90px; padding:20px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.espacios-card-vert h5{
+  font-family:var(--display); font-weight:700; font-size:14px; line-height:24px;
+  letter-spacing:.2px; color:#fff; margin:0; white-space:nowrap;
+}
+.espacios-card-vert .desc{
+  font-family:var(--body); font-weight:500; font-size:12px; line-height:1.8;
+  color:var(--text-900); opacity:.6; margin:0;
+}
+.espacios-card-vert .img-bottom{flex:1; position:relative; overflow:hidden}
+.espacios-card-vert .img-bottom img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.9}
+.espacios-card-vert .img-bottom::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, #1A1D26 1.9%, rgba(26,29,38,0) 64.23%);
+}
+
+/* ===================== SKELETON STATE (loader 2s) ===================== */
+.skeleton-state{display:none; padding:0; width:100%}
+.scroll.is-loading .gym-content,
+.scroll.is-loading .digital-content{display:none}
+.scroll.is-loading .skeleton-state{
+  display:flex; flex-direction:column; gap:18px;
+  padding:18px 16px 140px;
+  animation:fadeIn .25s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.skeleton-box{
+  height:134px; width:358px;
+  background:rgba(255,255,255,0.04);
+  border-radius:12px;
+  position:relative; overflow:hidden;
+}
+.skeleton-box::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.07) 50%,
+    transparent 100%
+  );
+  transform:translateX(-100%);
+  animation:waveSkeleton 1.5s ease-in-out infinite;
+}
+/* delay escalonado para que se sienta vivo, no robótico */
+.skeleton-box:nth-child(1)::after{animation-delay:.0s}
+.skeleton-box:nth-child(2)::after{animation-delay:.15s}
+.skeleton-box:nth-child(3)::after{animation-delay:.3s}
+.skeleton-box:nth-child(4)::after{animation-delay:.45s}
+@keyframes waveSkeleton{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(100%)}
+}
+
+/* ===================== BOTTOM NAV =====================
+   Estructura corregida: el wrapper exterior tiene el bg surface-200
+   que se extiende los 106px completos (nav 80 + home indicator 26).
+   El QR raised desborda hacia arriba con overflow:visible.
+   Arriba va una capa separada con el gradient fade. */
+
+.bottom-nav-fade{
+  position:absolute; left:0; right:0; bottom:0;
+  height:231px;
+  background:linear-gradient(180deg, rgba(17,19,23,0) 0%, #111317 60%);
+  pointer-events:none;
+  z-index:29;
+}
+.bottom-nav-shell{
+  position:absolute; left:0; right:0; bottom:0;
+  height:106px;
+  background:var(--surface-200);
+  border-top:1px solid var(--surface-400);
+  border-radius:12px 12px 0 0;
+  display:flex; flex-direction:column;
+  z-index:30;
+  filter:drop-shadow(0 -5px 5px rgba(255,255,255,.05));
+  /* Importante: overflow:visible para que el QR raised pueda desbordar arriba */
+  overflow:visible;
+}
+.nav-bar{
+  flex:0 0 80px;
+  display:flex; align-items:flex-end; justify-content:center;
+  padding:16px 8px;
+  /* sin bg ni borders propios — los hereda del shell */
+}
+.nav-tab{
+  flex:1; height:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  cursor:pointer;
+  opacity:.3;
+  background:transparent; border:0;
+  font:inherit;
+}
+.nav-tab.active{opacity:1}
+.nav-tab .ico{width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#fff}
+.nav-tab .lbl{
+  font-family:var(--body); font-weight:700; font-size:10px; line-height:18px;
+  color:#FDFDFE; text-align:center;
+}
+.nav-qr-cell{
+  height:74px;
+  display:flex; align-items:flex-start; justify-content:center;
+  padding-bottom:10px;
+  flex-shrink:0;
+}
+.nav-qr{
+  width:64px; height:64px;
+  background:var(--surface-500);
+  border-radius:9999px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.nav-home-strip{
+  flex:0 0 26px;
+  display:flex; align-items:center; justify-content:center;
+}
+.home-indicator{
+  width:134px; height:5px; border-radius:100px; background:#fff;
+  margin-bottom:8px; /* separación visual del borde inferior del device */
+}
+
+/* ===================== BOTTOM SHEET ===================== */
+.sheet-bg{
+  position:absolute; inset:0;
+  background:rgba(17,19,23,.8);
+  opacity:0; pointer-events:none; transition:opacity .3s ease;
+  z-index:60;
+}
+.sheet-bg.is-open{opacity:1; pointer-events:auto}
+
+.sheet{
+  position:absolute; left:0; right:0; bottom:0;
+  z-index:65;
+  background:var(--surface-200);
+  border-radius:24px 24px 0 0;
+  filter:drop-shadow(0 0 20px rgba(38,38,38,.2));
+  transform:translateY(100%); transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  display:flex; flex-direction:column;
+  max-height:88%;
+}
+.sheet.is-open{transform:translateY(0)}
+
+.sheet .handle-bar{
+  display:flex; justify-content:center; align-items:center;
+  padding:8px 16px;
+  background:var(--surface-200);
+  border-radius:24px 24px 0 0;
+}
+.sheet .grip{
+  width:64px; height:4px;
+  background:var(--surface-300);
+  border-radius:2px;
+}
+.sheet .actionsheet{
+  padding:16px;
+  display:flex; flex-direction:column; gap:16px; align-items:center;
+  background:var(--surface-200);
+  overflow-y:auto;
+}
+.sheet .actionsheet::-webkit-scrollbar{display:none}
+.sheet .sorting-wrapper{width:100%; display:flex; gap:16px}
+.sheet .sorting-wrapper h2{
+  flex:1;
+  font-family:var(--display); font-weight:600; font-size:18px; line-height:28px;
+  color:var(--text-900); margin:0;
+}
+.sede-list{
+  width:359px;
+  display:flex; flex-direction:column; gap:16px;
+}
+
+/* Location Card en sheet */
+.loc-card{
+  position:relative;
+  height:116px;
+  width:100%;
+  background:var(--surface-100);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex; align-items:center; gap:16px;
+  border:2px solid transparent;
+  cursor:pointer;
+}
+.loc-card.is-selected{border-color:var(--secondary-300)}
+.loc-card .cover{
+  flex-shrink:0;
+  width:80px; height:116px;
+  position:relative; overflow:hidden;
+}
+.loc-card .cover img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.loc-card.is-closed .cover img{filter:saturate(0)}
+.loc-card .info{
+  flex:1; min-width:0;
+  display:flex; gap:16px; align-items:center;
+}
+.loc-card .info-inner{
+  flex:1; min-width:0;
+  display:flex; flex-direction:column; gap:4px; justify-content:center;
+  padding:16px 16px 16px 0;
+}
+.loc-card .title-line{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding-right:12px;
+}
+.loc-card .title-content{
+  display:flex; align-items:center; gap:0;
+}
+.loc-card h3{
+  font-family:var(--display); font-weight:600; font-size:18px; line-height:28px;
+  color:var(--text-950); margin:0; white-space:nowrap;
+}
+.loc-card .price{
+  font-family:var(--body); font-weight:700; font-size:14px; line-height:24px;
+  color:var(--text-950); text-align:right;
+}
+.loc-card .arrow-icon{
+  width:24px; height:24px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text-950);
+}
+
+/* Ocupación badge */
+.ocupacion-badge{
+  display:inline-flex; align-items:center; gap:4px;
+  height:24px;
+  padding:4px 8px;
+  background:var(--success-bg);
+  border-radius:6px;
+  width:max-content;
+}
+.ocupacion-badge .lbl{
+  font-family:var(--body); font-weight:500; font-size:10px; line-height:18px;
+  color:var(--success-800); white-space:nowrap;
+}
+.ocupacion-badge .icons{display:inline-flex; align-items:center; gap:0}
+.ocupacion-badge .icons svg{width:12px; height:12px; color:var(--success-500)}
+.ocupacion-badge .icons svg.dim{opacity:.4}
+
+/* Cerrada badge */
+.cerrada-badge{
+  display:inline-flex; align-items:center; gap:4px;
+  height:24px;
+  padding:4px 8px;
+  background:var(--surface-300);
+  border-radius:6px;
+  width:max-content;
+}
+.cerrada-badge .lbl{
+  font-family:var(--body); font-weight:500; font-size:10px; line-height:18px;
+  color:var(--surface-800); white-space:nowrap;
+}
+
+/* Location info row (address + distance) */
+.loc-info-row{display:flex; gap:0; align-items:flex-start}
+.loc-tag{
+  display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  height:24px; padding:4px;
+  border-radius:6px;
+}
+.loc-tag svg{width:12px; height:12px; color:var(--text-950); flex-shrink:0}
+.loc-tag .txt{
+  font-family:var(--body); font-weight:500; font-size:12px; line-height:20px;
+  color:var(--text-800); white-space:nowrap;
+}
+.loc-card.is-closed .loc-tag .txt{color:var(--text-950); opacity:.6}
+
+/* Nueva tag (en card Independencia) */
+.nueva-floating{
+  position:absolute; top:0; left:0;
+  z-index:2;
+  display:inline-flex; align-items:center; justify-content:center;
+  height:24px; padding:0 10px;
+  background:var(--success-500);
+  border-radius:0 8px 8px 0;
+  overflow:hidden;
+}
+.nueva-floating .lbl{
+  position:relative; z-index:1;
+  font-family:var(--body); font-weight:700; font-size:12px; line-height:20px;
+  color:var(--success-bg);
+}
+.nueva-floating::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.55) 50%, transparent 100%);
+  transform:translateX(-100%);
+  animation:shimmer 2.4s ease-in-out infinite;
+}
+
+/* Sheet — Divider, Controlbar (Cerrar), Aplicar */
+.sheet .divider{height:1px; width:100%; background:var(--surface-400)}
+.sheet .controlbar{
+  width:100%;
+  background:var(--surface-200);
+  padding:8px 16px 0;
+  display:flex; flex-direction:column; gap:0; align-items:center; justify-content:center;
+}
+.sheet .btn-aplicar{
+  width:100%; height:48px;
+  border:0; cursor:pointer;
+  background:var(--secondary-300);
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--display); font-weight:600; font-size:15px; line-height:24px;
+  color:var(--text-950);
+  margin-bottom:8px;
+  animation:btnRise .35s cubic-bezier(.2,.8,.2,1);
+}
+.sheet .btn-aplicar:hover{background:var(--secondary-400)}
+.sheet .btn-aplicar[hidden]{display:none}
+@keyframes btnRise{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+.sheet .btn-cerrar{
+  width:100%; height:40px;
+  border:0; cursor:pointer; background:transparent;
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--display); font-weight:600; font-size:14px; line-height:24px;
+  color:var(--text-900);
+  padding:0 20px;
+}
+.sheet .ios-system{
+  width:100%;
+  background:var(--surface-200);
+  padding:8px 16px 0;
+  display:flex; align-items:center; justify-content:center;
+}
+.sheet .ios-system .home-indicator{margin-bottom:14px}
+
+/* ===================== MICRO-INTERACCIONES ===================== */
+/* Cards: subtle scale al presionar (feedback táctil suave) */
+.entrenar-card,
+.recuperar-card,
+.espacios-card-stack,
+.espacios-card-vert,
+.digital-card,
+.loc-card{
+  transition:transform .18s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  will-change:transform;
+}
+.entrenar-card:active,
+.recuperar-card:active,
+.espacios-card-stack:active,
+.espacios-card-vert:active,
+.digital-card:active{
+  transform:scale(.985);
+}
+/* En desktop hover sutil para que la pantalla "se sienta interactiva" */
+@media (hover:hover){
+  .entrenar-card:hover,
+  .recuperar-card:hover,
+  .espacios-card-stack:hover,
+  .espacios-card-vert:hover,
+  .digital-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+  }
+  .loc-card:not(.is-closed):hover{
+    background:#1c2029;
+  }
+}
+
+/* Botones: scale al presionar */
+.sede-pill,
+.detail-pill,
+.btn-aplicar,
+.btn-cerrar,
+.reset-btn,
+.nav-qr,
+.chip-pase{
+  transition:background .2s ease, transform .12s ease, opacity .2s ease;
+}
+.sede-pill:active,
+.detail-pill:active,
+.btn-aplicar:active,
+.reset-btn:active,
+.chip-pase:active,
+.nav-qr:active{
+  transform:scale(.96);
+}
+
+/* Sede pill hover (desktop) — refuerza el highlight glass */
+@media (hover:hover){
+  .sede-pill:hover,
+  .detail-pill:hover{
+    background:linear-gradient(180deg,
+      rgba(255,255,255,0.14) 0%,
+      rgba(255,255,255,0.05) 100%
+    );
+    border-color:rgba(255,255,255,0.20);
+  }
+}
+
+/* Nav tabs: smooth opacity */
+.nav-tab{
+  transition:opacity .2s ease;
+}
+
+/* Sheet animation refinement */
+.sheet-bg{transition:opacity .3s ease, backdrop-filter .3s ease}
+.sheet-bg.is-open{backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px)}
+
+/* ===================== DIGITAL CARDS ===================== */
+.digital-card{
+  position:relative;
+  height:124px; width:100%;
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--surface-300);
+  cursor:pointer;
+  isolation:isolate;
+}
+.digital-card .photo{
+  position:absolute; inset:0;
+  background-size:cover; background-position:right center;
+}
+.digital-card::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, var(--surface-200) 51.5%, rgba(33,38,49,.3) 100%);
+}
+.digital-card .label{
+  position:absolute;
+  top:20px; left:20px; right:20px;
+  z-index:1;
+  font-family:var(--display); font-weight:600; font-size:14px; line-height:24px;
+  color:var(--text-900);
+  margin:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* ===================== TOAST (debug helper) ===================== */
+.toast{
+  position:absolute; left:50%; top:80px; transform:translateX(-50%) translateY(-30px);
+  background:rgba(255,255,255,.96); color:var(--surface-100); padding:9px 14px; border-radius:999px;
+  font-family:var(--display); font-weight:600; font-size:12px; z-index:90;
+  box-shadow:0 12px 30px rgba(0,0,0,.35);
+  opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+  max-width:80%;
+}
+.toast.is-on{opacity:1; transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<button class="reset-btn" id="reset-btn" title="Reinicia el flujo: vuelve a la primera entrada y abre el sheet">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12a9 9 0 1 0 3-6.7"/>
+    <path d="M3 4v5h5"/>
+  </svg>
+  Reset prototype
+</button>
+
+<div class="device" id="device">
+  <div class="screen">
+    <div class="notch"></div>
+
+    <!-- ========= STATUS BAR (siempre visible al top, z:100) ========= -->
+    <div class="status-bar-area">
+      <div class="status-bar">
+        <div class="left"><span class="time">9:00</span></div>
+        <div class="right">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="white">
+            <rect x="0" y="8" width="3" height="4" rx="1"/>
+            <rect x="5" y="6" width="3" height="6" rx="1"/>
+            <rect x="10" y="3" width="3" height="9" rx="1"/>
+            <rect x="15" y="0" width="3" height="12" rx="1"/>
+          </svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white">
+            <path d="M8.5 12L11 9.5C9.6 8.1 7.4 8.1 6 9.5L8.5 12Z"/>
+            <path d="M3.5 7C6.3 4.2 10.7 4.2 13.5 7L15.5 5C11.5 1 5.5 1 1.5 5L3.5 7Z"/>
+            <path d="M0.5 4C5 -0.5 12 -0.5 16.5 4L14.5 6C11.4 2.9 5.6 2.9 2.5 6L0.5 4Z" opacity=".6"/>
+          </svg>
+          <svg width="27" height="13" viewBox="0 0 27 13" fill="none">
+            <rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="white" opacity=".55"/>
+            <rect x="2" y="2" width="19" height="9" rx="1.5" fill="white"/>
+            <rect x="23.5" y="4" width="2" height="5" rx=".5" fill="white" opacity=".55"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========= SCROLL ========= -->
+    <div class="scroll" id="scroll">
+
+      <!-- Header que scrollea con el contenido (tabs + título) -->
+      <div class="header-scroll">
+        <div class="tab-row">
+          <div class="tabs-inner" id="tabs">
+            <button class="tab active" data-tab="gym">Gym</button>
+            <button class="tab" data-tab="digital">Digital</button>
+            <span class="tab-indicator"></span>
+          </div>
+        </div>
+        <div class="title-row">
+          <h1>Explora</h1>
+        </div>
+      </div>
+
+      <!-- Sede selector — sticky a top:54 cuando el scroll baja -->
+      <div class="sede-sticky-wrap">
+        <div class="sede-filter-row">
+          <div class="sede-cluster">
+            <button class="sede-pill" id="sede-pill" type="button">
+              <span class="pin-ico">
+                <svg viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+              </span>
+              <span class="name" id="current-sede-name">NEO Froilán Roa</span>
+              <span class="chev">
+                <svg viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                  <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+                </svg>
+              </span>
+            </button>
+            <button class="detail-pill" id="ver-detalle" type="button">
+              <span class="label">Ver detalle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="gym-content" id="gym-content">
+
+        <!-- ENTRENAR -->
+        <div class="service-row">
+          <div class="section-header">
+            <div class="title-indicator">
+              <div class="bar bar-blue"></div>
+              <h3>Entrenar</h3>
+            </div>
+            <span class="all">Ver todo</span>
+          </div>
+          <div class="entrenar-col">
+            <div class="entrenar-card" data-room="cardio">
+              <div class="text-side">
+                <h4>Área de cardio<br/>y musculación</h4>
+                <p>Con tu pase accede<br/>libremente a estas áreas</p>
+              </div>
+              <div class="img-side"><img src="assets/figma/sala-cardio.png" alt=""/></div>
+              <div class="incluido-badge">
+                <span class="dot-anim"></span>
+                <span class="incluido-label">Incluido con el pase</span>
+              </div>
+            </div>
+            <div class="entrenar-card" data-room="multiclass">
+              <div class="text-side">
+                <h4>Sala multiclass</h4>
+                <p>Reserva clases on-demand con pantalla inmersiva.</p>
+              </div>
+              <div class="img-side"><img src="assets/figma/sala-multiclass.png" alt=""/></div>
+            </div>
+            <div class="entrenar-card" data-room="funcional">
+              <div class="text-side">
+                <h4>Sala Funcional</h4>
+                <p>Reserva máquinas inteligentes para entrenar a medida.</p>
+              </div>
+              <div class="img-side"><img src="assets/figma/sala-funcional.png" alt=""/></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECUPERAR -->
+        <div class="service-row">
+          <div class="section-header">
+            <div class="title-indicator">
+              <div class="bar bar-info"></div>
+              <h3>Recuperar</h3>
+              <span class="tag-nuevo"><span class="label">Nuevo</span></span>
+            </div>
+            <span class="all">Ver todo</span>
+          </div>
+          <div class="recuperar-row">
+            <div class="recuperar-card" data-room="polar">
+              <img src="assets/figma/polar-wave.png" alt=""/>
+              <div class="body">
+                <h5>Polar wave</h5>
+                <p class="desc">Inmersión en frio</p>
+              </div>
+            </div>
+            <div class="recuperar-card" data-room="hidro">
+              <img src="assets/figma/hidro-masaje.png" alt=""/>
+              <div class="body">
+                <h5>Hidro masaje</h5>
+                <p class="desc">Relajación profunda</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESPACIOS -->
+        <div class="service-row">
+          <div class="section-header">
+            <div class="title-indicator">
+              <div class="bar bar-grey"></div>
+              <h3>Espacios</h3>
+            </div>
+            <span class="all">Ver todo</span>
+          </div>
+          <div class="espacios-block">
+            <div class="espacios-stack">
+              <div class="espacios-card-stack" data-room="phonebooth">
+                <div class="text-side">
+                  <h5>Phonebooth</h5>
+                  <p class="desc">2 disponibles para 1 persona</p>
+                </div>
+                <div class="img-side"><img src="assets/figma/phonebooth.png" alt=""/></div>
+              </div>
+              <div class="espacios-card-stack" data-room="reunion">
+                <div class="text-side">
+                  <h5>Sala Reunión</h5>
+                  <p class="desc">Max 6 personas</p>
+                </div>
+                <div class="img-side"><img src="assets/figma/reunion.png" alt=""/></div>
+              </div>
+            </div>
+            <div class="espacios-row">
+              <div class="espacios-card-vert" data-room="musica">
+                <div class="text-top">
+                  <h5>Toca tu musica</h5>
+                  <p class="desc">En vivo en el gym</p>
+                </div>
+                <div class="img-bottom"><img src="assets/figma/musica.png" alt=""/></div>
+              </div>
+              <div class="espacios-card-vert" data-room="podcast">
+                <div class="text-top">
+                  <h5>Grabá tu Podcast</h5>
+                  <p class="desc">Equipos alta gama</p>
+                </div>
+                <div class="img-bottom"><img src="assets/figma/podcast.png" alt=""/></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- InstruccionModal (movido al final, antes era el banner superior) -->
+        <div class="instruccion-modal">
+          <div class="blob"></div>
+          <div class="row">
+            <div class="dot-anim"></div>
+            <div class="text-stack">
+              <p class="lead">Tu pase o reserva incluye acceso libre a las áreas de:</p>
+              <div class="chip-row">
+                <button class="chip-pase">
+                  <span class="ico">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14 4.14 5.57 2 7.71 3.43 9.14 2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86 19.86 18.43 22 16.29 20.57 14.86z"/>
+                    </svg>
+                  </span>
+                  <span class="label">Musculación</span>
+                </button>
+                <button class="chip-pase">
+                  <span class="ico">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.7 0-3.2-.9-4-2.2l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                    </svg>
+                  </span>
+                  <span class="label">Cardio</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <a class="pase-link" href="#">
+            <span>Pase para Froilán Roa</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M5 12h12.17l-3.58-3.59L15 7l6 6-6 6-1.41-1.41L17.17 14H5v-2z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ========= DIGITAL CONTENT ========= -->
+      <div class="digital-content" id="digital-content" hidden>
+        <div class="digital-card" data-digital="entrenamiento">
+          <div class="photo" style="background-image:url('assets/figma/digital-entrenamiento.png')"></div>
+          <p class="label">Entrenamiento &amp; Nutrición</p>
+        </div>
+        <div class="digital-card" data-digital="wellness">
+          <div class="photo" style="background-image:url('assets/figma/digital-wellness.png')"></div>
+          <p class="label">Wellness On-demand</p>
+        </div>
+      </div>
+
+      <!-- Skeleton (loader 2s) -->
+      <div class="skeleton-state">
+        <div class="skeleton-box"></div>
+        <div class="skeleton-box"></div>
+        <div class="skeleton-box"></div>
+        <div class="skeleton-box"></div>
+      </div>
+    </div>
+
+    <!-- ========= BOTTOM NAV ========= -->
+    <!-- Capa de fade encima del scroll content (z:29) -->
+    <div class="bottom-nav-fade"></div>
+    <!-- Shell con bg surface-200 continuo de 106px y rounded top corners (z:30) -->
+    <div class="bottom-nav-shell">
+      <div class="nav-bar">
+        <button class="nav-tab" type="button">
+          <span class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z"/></svg>
+          </span>
+          <span class="lbl">Home</span>
+        </button>
+        <button class="nav-tab active" type="button">
+          <span class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27c1.2-1.4 1.82-3.31 1.48-5.34-.47-2.78-2.79-5-5.59-5.34-4.23-.52-7.79 3.04-7.27 7.27.34 2.8 2.56 5.12 5.34 5.59 2.03.34 3.94-.28 5.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          </span>
+          <span class="lbl">Explorar</span>
+        </button>
+        <div class="nav-qr-cell">
+          <button class="nav-qr" type="button">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+              <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-6 8h1.5v1.5H13V13zm1.5 1.5H16V16h-1.5v-1.5zM16 13h1.5v1.5H16V13zm-3 3h1.5v1.5H13V16zm1.5 1.5H16V19h-1.5v-1.5zM16 16h1.5v1.5H16V16zm1.5-1.5H19V16h-1.5v-1.5zm0 3H19V19h-1.5v-1.5zM22 7h-2V4h-3V2h5v5zm0 15v-5h-2v3h-3v2h5zM2 22h5v-2H4v-3H2v5zM2 2v5h2V4h3V2H2z"/>
+            </svg>
+          </button>
+        </div>
+        <button class="nav-tab" type="button">
+          <span class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          </span>
+          <span class="lbl">Sedes</span>
+        </button>
+        <button class="nav-tab" type="button">
+          <span class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14 4.14 5.57 2 7.71 3.43 9.14 2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86 19.86 18.43 22 16.29 20.57 14.86z"/></svg>
+          </span>
+          <span class="lbl">Workouts</span>
+        </button>
+      </div>
+      <div class="nav-home-strip">
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- ========= SHEET ========= -->
+    <div class="sheet-bg" id="sheet-bg"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-labelledby="sheet-title" aria-modal="true">
+      <div class="handle-bar"><div class="grip"></div></div>
+
+      <div class="actionsheet">
+        <div class="sorting-wrapper"><h2 id="sheet-title">Elige una sede</h2></div>
+
+        <div class="sede-list" id="sede-list">
+
+          <!-- Froilán Roa -->
+          <div class="loc-card is-selected" data-id="froilan" data-disabled="false">
+            <div class="cover"><img src="assets/figma/sede-froilan.png" alt=""/></div>
+            <div class="info">
+              <div class="info-inner">
+                <div class="title-line">
+                  <div class="title-content"><h3>Froilán Roa</h3></div>
+                  <span class="price">$1.000</span>
+                </div>
+                <div class="ocupacion-badge">
+                  <span class="lbl">Ocupación actual:</span>
+                  <span class="icons">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  </span>
+                </div>
+                <div class="loc-info-row">
+                  <span class="loc-tag">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span class="txt">Froilán Roa 1066, La Florida</span>
+                  </span>
+                  <span class="loc-tag">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.7 0-3.2-.9-4-2.2l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+                    <span class="txt">300 m</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Independencia -->
+          <div class="loc-card" data-id="independencia" data-disabled="false">
+            <div class="cover">
+              <img src="assets/figma/sede-independencia.png" alt=""/>
+            </div>
+            <span class="nueva-floating"><span class="lbl">Nueva</span></span>
+            <div class="info">
+              <div class="info-inner">
+                <div class="title-line">
+                  <div class="title-content"><h3>Independencia</h3></div>
+                  <span class="price">$1.000</span>
+                </div>
+                <div class="ocupacion-badge">
+                  <span class="lbl">Ocupación actual:</span>
+                  <span class="icons">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  </span>
+                </div>
+                <div class="loc-info-row">
+                  <span class="loc-tag">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span class="txt">Av. La Dehesa</span>
+                  </span>
+                  <span class="loc-tag">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.7 0-3.2-.9-4-2.2l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+                    <span class="txt">400 m</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Las Condes (closed) -->
+          <div class="loc-card is-closed" data-id="lascondes" data-disabled="true">
+            <div class="cover"><img src="assets/figma/sede-lascondes.png" alt=""/></div>
+            <div class="info">
+              <div class="info-inner" style="padding-left:16px">
+                <div class="title-line">
+                  <div class="title-content"><h3>Las Condes</h3></div>
+                  <span class="arrow-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.29 6.71c-.39.39-.39 1.02 0 1.41L13.17 12l-3.88 3.88c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l4.59-4.59c.39-.39.39-1.02 0-1.41L10.7 6.71c-.38-.38-1.02-.38-1.41 0z"/></svg>
+                  </span>
+                </div>
+                <div class="cerrada-badge">
+                  <span class="lbl">Sede cerrada - Abre mañana</span>
+                </div>
+                <div class="loc-info-row">
+                  <span class="loc-tag">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span class="txt">Los Militares</span>
+                  </span>
+                  <span class="loc-tag">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.7 0-3.2-.9-4-2.2l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+                    <span class="txt">500 m</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="controlbar">
+        <button class="btn-aplicar" id="btn-aplicar" type="button" hidden>Aplicar</button>
+        <button class="btn-cerrar" id="btn-cerrar" type="button">Cerrar</button>
+      </div>
+
+      <div class="ios-system">
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   Lógica del prototipo
+   ===================================================================== */
+const SEDES = {
+  froilan:       { id:'froilan',       name:'NEO Froilán Roa',     selectable:true  },
+  independencia: { id:'independencia', name:'NEO Independencia',   selectable:true  },
+  lascondes:     { id:'lascondes',     name:'NEO Las Condes',      selectable:false },
+};
+const DEFAULT_SEDE_ID = 'froilan';
+
+const state = {
+  currentSedeId: DEFAULT_SEDE_ID,
+  pickedSedeId:  DEFAULT_SEDE_ID,
+  aplicarShown:  false,
+  /* isFirstEntry: true mientras el usuario no haya cerrado el sheet por primera vez.
+     En first-entry mostramos Aplicar desde el inicio para guiar el flujo.
+     Una vez que cierra el sheet (sea por Aplicar o Cerrar), pasa a false y
+     el resto de aperturas siguen la regla original: Aplicar aparece solo
+     cuando hay un cambio en la selección. */
+  isFirstEntry:  true,
+};
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+const els = {
+  sheet:           $('#sheet'),
+  sheetBg:         $('#sheet-bg'),
+  sedeList:        $('#sede-list'),
+  btnAplicar:      $('#btn-aplicar'),
+  btnCerrar:       $('#btn-cerrar'),
+  sedePill:        $('#sede-pill'),
+  currentSedeName: $('#current-sede-name'),
+  scroll:          $('#scroll'),
+  tabs:            $('#tabs'),
+  toast:           $('#toast'),
+  resetBtn:        $('#reset-btn'),
+  verDetalle:      $('#ver-detalle'),
+};
+
+let toastTimer;
+function showToast(msg, ms = 1600){
+  els.toast.textContent = msg;
+  els.toast.classList.add('is-on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => els.toast.classList.remove('is-on'), ms);
+}
+
+/* Sheet
+   --------------
+   Regla del Aplicar:
+   · Primera entrada (auto-open por reset/refresh): el botón Aplicar aparece
+     desde el inicio para guiar al usuario sobre cómo continuar.
+   · Cualquier apertura posterior (tap en el pill): el botón Aplicar NO se
+     muestra hasta que el usuario haga algún cambio en la selección. */
+function openSheet({ pickInitial = true } = {}){
+  if (pickInitial) state.pickedSedeId = state.currentSedeId;
+  state.aplicarShown = state.isFirstEntry;
+  refreshSheetUI();
+  els.sheet.classList.add('is-open');
+  els.sheetBg.classList.add('is-open');
+}
+function closeSheet(){
+  els.sheet.classList.remove('is-open');
+  els.sheetBg.classList.remove('is-open');
+  /* Cuando se cierra por primera vez (sea por Aplicar o Cerrar), la
+     "primera entrada" termina. Los siguientes opens vuelven al flujo normal. */
+  state.isFirstEntry = false;
+}
+function refreshSheetUI(){
+  $$('.loc-card', els.sedeList).forEach(card => {
+    card.classList.toggle('is-selected', card.dataset.id === state.pickedSedeId);
+  });
+  els.btnAplicar.hidden = !state.aplicarShown;
+}
+
+els.sedeList.addEventListener('click', e => {
+  const card = e.target.closest('.loc-card');
+  if (!card) return;
+  if (card.dataset.disabled === 'true') {
+    showToast('Sede cerrada · No disponible');
+    return;
+  }
+  const id = card.dataset.id;
+  state.pickedSedeId = id;
+  state.aplicarShown = true; // persiste para esta apertura del sheet
+  refreshSheetUI();
+});
+
+els.btnAplicar.addEventListener('click', () => {
+  state.currentSedeId = state.pickedSedeId;
+  closeSheet();
+  applySedeChange(state.currentSedeId);
+});
+els.btnCerrar.addEventListener('click', () => closeSheet());
+els.sheetBg.addEventListener('click', () => closeSheet());
+els.sedePill.addEventListener('click', () => openSheet());
+
+/* Aplicar cambio: header update + skeleton 2s + stagger reveal al volver */
+function applySedeChange(sedeId){
+  const sede = SEDES[sedeId];
+  if (!sede) return;
+  els.currentSedeName.textContent = sede.name;
+  els.scroll.classList.remove('just-loaded');
+  els.scroll.classList.add('is-loading');
+  els.scroll.scrollTo({ top:0 });
+  clearTimeout(applySedeChange._t);
+  applySedeChange._t = setTimeout(() => {
+    els.scroll.classList.remove('is-loading');
+    els.scroll.classList.add('just-loaded');
+    showToast(`Sede aplicada: ${sede.name.replace('NEO ','')}`);
+    // limpia just-loaded después de la animación stagger (~600ms total)
+    setTimeout(() => els.scroll.classList.remove('just-loaded'), 800);
+  }, 2000);
+}
+
+/* Tabs Gym/Digital — cross-fade del contenido + slide del indicador */
+const gymContent = document.getElementById('gym-content');
+const digitalContent = document.getElementById('digital-content');
+function switchTab(mode){
+  const isDigital = (mode === 'digital');
+  // estado visual del indicador + active class
+  els.tabs.classList.toggle('is-digital', isDigital);
+  els.tabs.querySelectorAll('button.tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === mode);
+  });
+  // body class para esconder selector de sede en digital
+  document.body.classList.toggle('is-digital', isDigital);
+  // cross-fade del contenido
+  els.scroll.classList.add('switching');
+  setTimeout(() => {
+    gymContent.hidden = isDigital;
+    digitalContent.hidden = !isDigital;
+    requestAnimationFrame(() => {
+      els.scroll.classList.remove('switching');
+    });
+  }, 200);
+}
+els.tabs.addEventListener('click', e => {
+  const btn = e.target.closest('button.tab');
+  if (!btn) return;
+  switchTab(btn.dataset.tab);
+});
+
+els.verDetalle.addEventListener('click', e => {
+  e.stopPropagation();
+  showToast('→ Detalle de sede');
+});
+
+/* Reset prototype — vuelve al estado de "primera entrada" */
+els.resetBtn.addEventListener('click', () => {
+  state.currentSedeId = DEFAULT_SEDE_ID;
+  state.pickedSedeId  = DEFAULT_SEDE_ID;
+  state.aplicarShown  = false;
+  state.isFirstEntry  = true; /* reabre el flujo de primera entrada */
+  els.currentSedeName.textContent = SEDES[DEFAULT_SEDE_ID].name;
+  els.scroll.classList.remove('is-loading');
+  refreshSheetUI();
+  openSheet();
+});
+
+/* First entry: abre sheet en cada reload */
+window.addEventListener('load', () => {
+  setTimeout(() => openSheet(), 200);
+});
+
+/* Cards de salas (placeholder toast) */
+document.addEventListener('click', e => {
+  const card = e.target.closest('[data-room]');
+  if (card) {
+    const map = {
+      multiclass:'Sala multiclass', funcional:'Sala Funcional',
+      polar:'Polar wave', hidro:'Hidro masaje',
+      phonebooth:'Phonebooth', reunion:'Sala Reunión',
+      musica:'Toca tu música', podcast:'Grabá tu Podcast',
+    };
+    showToast(`→ ${map[card.dataset.room]}`);
+    return;
+  }
+  const dCard = e.target.closest('[data-digital]');
+  if (dCard) {
+    const map = {
+      entrenamiento:'Entrenamiento & Nutrición',
+      wellness:'Wellness On-demand',
+    };
+    showToast(`→ ${map[dCard.dataset.digital]}`);
+  }
+});
+</script>
+</body>
+</html>
