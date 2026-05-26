@@ -53,7 +53,7 @@ body{
     #06070a;
 }
 
-/* ===================== RESET BUTTON (fuera del device) ===================== */
+/* ===================== RESET BUTTON + ANIM SELECTOR (fuera del device) ===================== */
 .reset-btn{
   position:fixed; top:24px; right:24px; z-index:1000;
   display:inline-flex; align-items:center; gap:8px;
@@ -66,6 +66,156 @@ body{
 .reset-btn:hover{background:rgba(255,255,255,.14)}
 .reset-btn:active{transform:scale(.97)}
 .reset-btn svg{width:14px; height:14px}
+
+
+/* ===================== ANIMACIONES DE ENTRADA — SEDES =====================
+   Se disparan la primera vez que el usuario llega a la tab Sedes,
+   y también al hacer Reset estando en Sedes.
+   El body recibe la clase `sedes-playing-v1` mientras dura (~3.2s).
+   ===================================================================== */
+
+/* ──────────────────────────────────────────────────────────────
+   V1 · 3 FASES (nueva coreografía fiel a los videos)
+
+   Fase 1 — Entrada (JS: t=0ms)
+     · La card de Independencia entra desde abajo como una card
+       REGULAR: sin gradiente azul, sin borde, sin header.
+     · Froilán baja a su posición final simultáneamente.
+
+   Fase 2 — Stroke (JS: t=700ms, transición CSS automática)
+     · Al retirar `.anim-v1-enter`, el border-color transiciona
+       de transparent → #002EF7 y el overlay pseudo se desvanece.
+     · Un box-shadow suave refuerza el "encendido" del borde.
+
+   Fase 3 — Header push (JS: t=1200ms)
+     · `.marcha-header` pasa de max-height:0 → 60px.
+     · La card interna baja y Froilán se desplaza naturalmente
+       porque el reflow del layout es animado por la transición.
+   ────────────────────────────────────────────────────────────── */
+
+/* — Sin animación de entrada: las dos cards se ven desde el frame 0 ——
+   La animación empieza directamente en Fase 2 (stroke) y luego Fase 3
+   (header). No hay translateY ni fade de entrada. */
+
+/* — Overlay que cubre el gradiente azul durante la entrada ————
+   Activo solo mientras .anim-v1-enter está presente en el wrapper.
+   Se desvanece solo cuando se retira esa clase (Fase 2).            */
+.sede-marcha-blanca-wrap::before{
+  content:'';
+  position:absolute; inset:0; border-radius:11px;
+  background:var(--surface-100);
+  z-index:1; pointer-events:none;
+  opacity:0;
+  transition: opacity .4s ease;
+}
+/* Hijos del wrapper por encima del overlay */
+.sede-marcha-blanca-wrap > *{ position:relative; z-index:2 }
+
+.sede-marcha-blanca-wrap.anim-v1-enter::before{ opacity:1 }
+
+/* — Transiciones del wrapper ——— */
+.sede-marcha-blanca-wrap{
+  transition: border-color .4s ease, box-shadow .5s ease;
+}
+/* anim-v1-enter: solo suprime el glow (border ya es transparent por default) */
+.sede-marcha-blanca-wrap.anim-v1-enter{
+  box-shadow: none !important;
+}
+/* Fase 2: stroke azul aparece + glow */
+.sede-marcha-blanca-wrap.anim-v1-stroke{
+  border-color: var(--secondary-300);
+  box-shadow: 0 0 22px 6px rgba(0,46,247,.4), 0 0 0 1px rgba(51,88,249,.3);
+}
+/* Estado final post-animación: border visible, glow apagado */
+.sede-marcha-blanca-wrap.sede-revealed{
+  border-color: var(--secondary-300);
+}
+
+/* — Header colapsado para Fase 1 y 2; se expande en Fase 3 ———— */
+.marcha-header{
+  /* max-height explícito para que la transición funcione */
+  max-height: 60px;
+  overflow: hidden;
+  transition:
+    max-height .42s cubic-bezier(.4,0,.2,1),
+    padding    .42s cubic-bezier(.4,0,.2,1),
+    opacity    .35s ease;
+}
+.marcha-header.anim-collapsed{
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0 !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   V2 · DISEÑADORA
+   Coreografía:
+   1. Las dos cards entran desde abajo con stagger (feel de app moderna)
+      — Marcha Blanca primero (0ms), Froilán 160ms después
+   2. El badge GRATIS hace un pop-in con spring
+   3. El contador "días" se desliza desde la izquierda
+   4. Un sweep de brillo (shimmer) barre el wrapper de izq a der
+   5. El border pulsea dos veces (latido) antes de apagarse
+   ────────────────────────────────────────────────────────────── */
+
+body.sedes-playing-v2 .sede-marcha-blanca-wrap{
+  animation:
+    v2CardUp     .62s cubic-bezier(.22,1,.36,1)  0ms   both,
+    v2BorderBeat 2.6s ease-out                   .68s  1;
+}
+body.sedes-playing-v2 .sede-list-card{
+  animation: v2CardUp .62s cubic-bezier(.22,1,.36,1) 160ms both;
+}
+body.sedes-playing-v2 .marcha-gratis{
+  animation: v2GratisPop .5s cubic-bezier(.34,1.56,.64,1) .62s both;
+}
+body.sedes-playing-v2 .marcha-dias{
+  animation: v2DiasIn .42s cubic-bezier(.2,.8,.2,1) .48s both;
+}
+body.sedes-playing-v2 .marcha-nueva-lbl{
+  animation: v2DiasIn .38s cubic-bezier(.2,.8,.2,1) .34s both;
+}
+/* Shimmer sweep — pseudo del wrapper */
+body.sedes-playing-v2 .sede-marcha-blanca-wrap::before{
+  content:'';
+  position:absolute; inset:0; z-index:10; pointer-events:none;
+  background:linear-gradient(105deg,
+    transparent 25%,
+    rgba(255,255,255,.09) 48%,
+    rgba(255,255,255,.04) 54%,
+    transparent 72%
+  );
+  transform:translateX(-130%);
+  animation:v2Shimmer .7s ease-in-out .32s 1 forwards;
+  border-radius:12px;
+}
+@keyframes v2CardUp{
+  from{ opacity:0; transform:translateY(44px) scale(.97) }
+  to  { opacity:1; transform:translateY(0)    scale(1)   }
+}
+@keyframes v2GratisPop{
+  0%  { transform:scale(0)    rotate(-14deg); opacity:0 }
+  60% { transform:scale(1.18) rotate( 3deg);  opacity:1 }
+  80% { transform:scale(.94)  rotate(-1deg);  opacity:1 }
+  100%{ transform:scale(1)    rotate(  0deg); opacity:1 }
+}
+@keyframes v2DiasIn{
+  from{ opacity:0; transform:translateX(-10px) }
+  to  { opacity:1; transform:translateX(0) }
+}
+@keyframes v2Shimmer{
+  from{ transform:translateX(-130%) }
+  to  { transform:translateX(230%)  }
+}
+@keyframes v2BorderBeat{
+  0%  { box-shadow:0 0 0  0  rgba(0,46,247,0) }
+  18% { box-shadow:0 0 32px 10px rgba(0,46,247,.60), 0 0 0 2px rgba(51,88,249,.80) }
+  36% { box-shadow:0 0  8px  2px rgba(0,46,247,.20), 0 0 0 1px rgba(51,88,249,.25) }
+  52% { box-shadow:0 0 28px  8px rgba(0,46,247,.45), 0 0 0 2px rgba(51,88,249,.60) }
+  72% { box-shadow:0 0 14px  4px rgba(0,46,247,.20), 0 0 0 1px rgba(51,88,249,.20) }
+  100%{ box-shadow:0 0 0  0  rgba(0,46,247,0) }
+}
 
 /* ===================== DEVICE FRAME ===================== */
 .device{
@@ -347,25 +497,29 @@ body.is-home .home-screen{display:flex}
   margin-top:14px;
 }
 .profile-pill{
-  display:inline-flex; align-items:center; gap:10px;
+  display:inline-flex; align-items:center; gap:12px;
   height:36px;
-  padding:4px 14px 4px 4px;
-  border-radius:9999px;
+  padding:0 12px 0 0;
+  border-radius:12px;
   border:1px solid rgba(255,255,255,.60);
-  background:linear-gradient(180deg, #111317 0%, rgba(33,38,49,0.07) 100%);
+  background:linear-gradient(270deg, rgba(33,38,49,0.07) 0%, #111317 100%);
+  overflow:hidden;
 }
 .profile-pill .avatar-btn{
-  width:28px; height:28px;
+  width:36px; height:36px;
+  flex-shrink:0;
   border-radius:12px;
   background:#002AE1;
   display:inline-flex; align-items:center; justify-content:center;
   color:#FEFEFF;
-  border:0;
+  border:1px solid rgba(255,255,255,0.07);
+  cursor:pointer;
 }
 .profile-pill .avatar-btn svg{width:16px; height:16px}
 .profile-pill .hi{
   font-family:var(--display); font-weight:600; font-size:18px; line-height:28px;
   color:#FEFEFF;
+  white-space:nowrap;
 }
 .cal-btn{
   width:36px; height:36px; border-radius:12px;
@@ -379,25 +533,26 @@ body.is-home .home-screen{display:flex}
 /* Weekly calendar row */
 .week-row{
   display:flex; gap:4px;
-  margin-top:24px;
-  height:60px;
+  margin-top:17px;
+  height:72px;
 }
 .week-day{
   flex:1;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
   border-radius:12px;
-  padding:6px 0;
+  padding:8px 4px;
+  border:1px solid transparent;
 }
 .week-day .lbl{
-  font-family:var(--body); font-weight:500; font-size:12px; line-height:18px;
+  font-family:var(--body); font-weight:500; font-size:12px; line-height:20px;
   color:#FEFEFF;
+  text-align:center;
 }
 .week-day .ico{
-  width:18px; height:18px;
+  width:24px; height:24px;
   display:inline-flex; align-items:center; justify-content:center;
 }
-.week-day .ico svg{width:18px; height:18px}
-.week-day.done .ico{color:#A8E858}
+.week-day .ico svg{width:24px; height:24px; display:block}
 .week-day.today{
   border:1px solid #FFFFFF;
 }
@@ -418,12 +573,14 @@ body.is-home .home-screen{display:flex}
 /* Section titles */
 .home-section-title{
   font-family:var(--display); font-weight:600; font-size:18px; line-height:28px;
-  color:#F5F5F5; margin:0 0 12px;
+  color:#F5F5F5; margin:0 0 16px;
 }
+section.gym-section .home-section-title{margin-bottom:17px}
 
 /* ===== A. Entrena en NEO Gym ===== */
 .primary-action-card{
   position:relative;
+  display:flex; flex-direction:column; align-items:flex-start;
 }
 .purchase-display-box{
   width:100%;
@@ -431,117 +588,178 @@ body.is-home .home-screen{display:flex}
   background:#1A1E26;
   border:2px solid #002EF7;
   border-radius:16px;
-  display:flex;
+  display:flex; flex-direction:column; align-items:center;
   position:relative;
   margin-bottom:-36px;
+  padding:0 8px 8px;
   overflow:hidden;
 }
+.purchase-display-box .pdb-row{
+  display:flex; align-items:center; gap:18px;
+  height:100%;
+}
 .purchase-display-box .pdb-btn{
-  flex:1;
   display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-  gap:10px;
+  gap:6px;
+  width:160.5px; height:98px;
   background:transparent; border:0; cursor:pointer;
-  padding:18px 20px;
+  padding:20px;
+  border-radius:12px;
   color:#F5F5F5;
   font:inherit;
 }
 .purchase-display-box .pdb-btn .ico{
   width:20px; height:20px;
   display:inline-flex; align-items:center; justify-content:center;
+  padding:4px;
+  box-sizing:content-box;
   color:#F5F5F5;
 }
-.purchase-display-box .pdb-btn .ico svg{width:20px; height:20px}
+.purchase-display-box .pdb-btn .ico svg{width:20px; height:20px; display:block}
 .purchase-display-box .pdb-btn .lbl{
   font-family:var(--display); font-weight:600; font-size:14px; line-height:24px;
   color:#F5F5F5;
+  white-space:nowrap;
 }
 .purchase-display-box .divider-v{
   width:1px;
-  background:linear-gradient(180deg, #002EF7 0%, rgba(0,46,247,0) 100%);
+  align-self:stretch;
+  margin-bottom:30px;
+  background:linear-gradient(180deg,
+    rgba(138,159,251,0) 0%,
+    rgb(69,103,249) 30%,
+    #002EF7 60%,
+    rgba(138,159,251,0) 100%);
 }
 .consumo-toast{
   position:relative;
   width:100%;
-  height:56px;
+  min-width:310px;
   border-radius:12px;
-  background:linear-gradient(183deg, rgba(17,19,23,0.2) 0%, rgba(96,111,140,0.2) 100%);
+  background:#1A1E26;
+  border:1px solid rgba(138,159,251,0.5);
   display:flex; align-items:center;
-  padding:0 16px;
-  gap:8px;
+  padding:12px;
+  gap:16px;
   z-index:2;
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
+}
+.consumo-toast .toast-inner{
+  display:flex; align-items:center; flex:1; min-width:0; gap:1px;
 }
 .consumo-toast .money-ico{
-  width:20px; height:20px;
-  display:inline-flex; align-items:center; justify-content:center;
+  width:20px; height:20px; flex-shrink:0;
+  display:inline-flex; align-items:flex-start; justify-content:center;
+  padding:3px 2px 2px;
+  box-sizing:content-box;
   color:#FEFEFF;
 }
-.consumo-toast .money-ico svg{width:18px; height:18px}
+.consumo-toast .money-ico svg{width:20px; height:20px; display:block}
+.consumo-toast .text-wrap{
+  display:flex; align-items:center; gap:8px;
+  white-space:nowrap;
+  font-family:var(--body);
+}
 .consumo-toast .price{
-  font-family:var(--body); font-weight:500; font-size:14px; line-height:24px;
+  font-weight:500; font-size:14px; line-height:24px;
   color:#FEFEFF;
 }
 .consumo-toast .desc{
-  font-family:var(--body); font-weight:400; font-size:12px; line-height:20px;
+  font-weight:500; font-size:12px; line-height:20px;
   color:rgba(254,254,255,0.5);
 }
 .consumo-toast .plus{
   margin-left:auto;
-  width:24px; height:24px;
+  width:20px; height:20px;
   background:transparent; border:0; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:center;
   color:#FEFEFF;
+  opacity:.6;
 }
-.consumo-toast .plus svg{width:18px; height:18px}
+.consumo-toast .plus svg{width:20px; height:20px}
 
-/* ===== B. InstruccionModal ===== */
+/* ===== B. InstruccionModal — full-bg image + GRATIS badge ===== */
 .home-instruccion-modal{
   position:relative;
   width:100%;
-  min-height:294px;
+  height:294px;
   border-radius:12px;
-  background:linear-gradient(202deg, rgba(17,19,23,0.2) 0%, rgba(96,111,140,0.2) 100%);
   overflow:hidden;
-  padding:16px 16px 64px;
+  padding:16px;
+  display:flex; flex-direction:column; align-items:flex-start;
+  gap:18px;
+}
+.home-instruccion-modal .bg-layer{
+  position:absolute; inset:0;
+  border-radius:12px;
+  pointer-events:none;
+}
+.home-instruccion-modal .bg-layer img{
+  position:absolute; inset:0;
+  width:100%; height:100%; object-fit:cover;
+  border-radius:12px;
+}
+.home-instruccion-modal .bg-layer::after{
+  content:""; position:absolute; inset:0;
+  border-radius:12px;
+  background:linear-gradient(202.7deg, rgba(17,19,23,0.2) 39.76%, rgba(96,111,140,0.2) 151.02%);
 }
 .home-instruccion-modal .close{
-  position:absolute; top:16px; right:16px;
+  position:absolute; top:15px; right:16px;
   width:18px; height:18px; border:0; background:transparent;
   cursor:pointer; color:#FEFEFF; z-index:3;
   display:inline-flex; align-items:center; justify-content:center;
 }
 .home-instruccion-modal .close svg{width:18px; height:18px}
-.home-instruccion-modal .building-3d{
-  position:absolute;
-  right:-40px; top:35px;
-  width:220px; height:220px;
-  z-index:1;
-  filter:drop-shadow(0 4px 80px rgba(0,46,247,.65));
-  pointer-events:none;
-  object-fit:contain;
+
+/* GRATIS [7] días badge */
+.gratis-badge{
+  position:relative; z-index:2;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px;
+  width:157px;
+  padding:8px 12px;
+  border-radius:8px;
+  background:linear-gradient(187.76deg, rgba(17,19,23,0.2) 39.76%, rgba(96,111,140,0.2) 151.02%);
 }
+.gratis-pill{
+  position:relative;
+  width:59px; height:24px;
+  background:#BDE986;
+  border-radius:8px;
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.gratis-pill::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 54.5%, rgba(255,255,255,0) 100%);
+  pointer-events:none;
+}
+.gratis-pill .label{
+  position:relative;
+  font-family:var(--body); font-weight:700; font-size:12px; line-height:20px;
+  color:#1C2B21; white-space:nowrap;
+}
+.gratis-badge .days{
+  font-family:var(--display); font-weight:700; font-size:16px; line-height:26px;
+  letter-spacing:.2px; color:#FFFFFF; white-space:nowrap;
+}
+
 .home-instruccion-modal .text-block{
   position:relative; z-index:2;
-  padding-top:6px;
+  display:flex; flex-direction:column; gap:3px;
   width:196px;
-  max-width:196px;
-}
-.home-instruccion-modal .eyebrow{
-  font-family:var(--body); font-weight:700; font-size:12px; line-height:20px;
-  color:#B0BEFD; margin:0;
-  white-space:nowrap;
 }
 .home-instruccion-modal h3{
-  font-family:var(--body); font-weight:700; font-size:18px; line-height:30px;
-  color:#FEFEFF; margin:3px 0 10px;
+  font-family:var(--body); font-weight:700; font-size:18px; line-height:28px;
+  color:#FEFEFF; margin:0;
 }
 .home-instruccion-modal .copy{
-  font-family:var(--body); font-weight:400; font-size:13px; line-height:20px;
-  color:#E5E5E5; margin:0 0 14px;
+  font-family:var(--body); font-weight:400; font-size:14px; line-height:24px;
+  color:#E5E5E5; margin:0;
 }
 .home-instruccion-modal .addr{
-  display:inline-flex; align-items:center; gap:8px;
+  position:relative; z-index:2;
+  display:inline-flex; align-items:center; gap:2px;
   font-family:var(--body); font-weight:400; font-size:12px; line-height:20px;
   color:#E5E5E5;
 }
@@ -572,25 +790,35 @@ body.is-home .home-screen{display:flex}
   height:124px;
   border-radius:12px;
   overflow:hidden;
-  background:#212631;
+  padding:20px;
+  display:flex; flex-direction:column; align-items:flex-start;
   cursor:pointer;
 }
-.digital-promo-card .bg{
-  position:absolute; top:0; right:0; bottom:0;
-  width:60%;
-  background-size:cover;
-  background-position:center;
+.digital-promo-card .base{
+  position:absolute; inset:0;
+  background:#212631;
+  border-radius:12px;
 }
-.digital-promo-card::after{
-  content:""; position:absolute; inset:0;
-  background:linear-gradient(90deg, #1A1E26 51%, rgba(33,38,49,0.3) 100%);
+.digital-promo-card .bg-img-wrap{
+  position:absolute; inset:0;
+  overflow:hidden;
+  border-radius:12px;
+}
+.digital-promo-card .bg-img-wrap img{
+  position:absolute;
+  max-width:none;
+  object-fit:cover;
+}
+.digital-promo-card .overlay{
+  position:absolute; inset:0;
+  border-radius:12px;
+  background:linear-gradient(90deg, #1A1E26 51.536%, rgba(33,38,49,0.3) 100%);
 }
 .digital-promo-card .lbl{
-  position:absolute; left:20px; top:50%;
-  transform:translateY(-50%);
-  z-index:2;
+  position:relative; z-index:2;
   font-family:var(--display); font-weight:600; font-size:14px; line-height:24px;
   color:#F5F5F5;
+  white-space:nowrap;
 }
 
 /* legacy class kept as alias if anything still references it */
@@ -681,6 +909,10 @@ body.is-home .home-screen{display:flex}
   font-family:var(--display); font-weight:600; font-size:14px; line-height:22px;
   color:var(--text-950); flex-shrink:0;
 }
+.sede-list-card .head .chev{
+  width:24px; height:24px; flex-shrink:0;
+  color:var(--text-950); opacity:.5;
+}
 .sede-list-card .meta-row{
   display:flex; align-items:center; gap:10px;
   margin-top:2px;
@@ -696,83 +928,127 @@ body.is-home .home-screen{display:flex}
 }
 .sede-list-card .meta span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 
-/* ===================== WOW EFFECT — Lanzamos otra sede ===================== */
-.lanzamos-banner{
-  position:absolute; top:60px; left:50%;
-  transform:translateX(-50%) translateY(-20px) scale(.92);
-  display:flex; align-items:center; gap:10px;
-  background:linear-gradient(135deg, #A8E858 0%, #82CC25 100%);
-  color:#0F1217;
-  padding:10px 16px;
-  border-radius:9999px;
-  font-family:var(--display); font-weight:700; font-size:14px; line-height:20px;
-  box-shadow:0 8px 24px rgba(130,204,37,.35), 0 0 0 4px rgba(168,232,88,.18);
-  opacity:0;
-  z-index:60;
-  white-space:nowrap;
-}
-.lanzamos-banner .dot{
-  width:8px; height:8px; border-radius:50%; background:#0F1217;
-  animation:lanzamosDot 1.2s ease-in-out infinite;
-}
-@keyframes lanzamosDot{
-  0%,100%{transform:scale(.7); opacity:.6}
-  50%{transform:scale(1.15); opacity:1}
-}
-.lanzamos-banner.is-on{
-  animation:lanzamosBannerIn .55s cubic-bezier(.34,1.56,.64,1) forwards,
-            lanzamosBannerOut .4s ease-in 2.6s forwards;
-}
-@keyframes lanzamosBannerIn{
-  0%{opacity:0; transform:translateX(-50%) translateY(-30px) scale(.85)}
-  100%{opacity:1; transform:translateX(-50%) translateY(0) scale(1)}
-}
-@keyframes lanzamosBannerOut{
-  0%{opacity:1; transform:translateX(-50%) translateY(0) scale(1)}
-  100%{opacity:0; transform:translateX(-50%) translateY(-18px) scale(.96)}
+/* ===================== CARD MARCHA BLANCA ===================== */
+
+/* Cuando sede-list-card vive dentro del wrapper de animación:
+   fondo transparente para que el gradiente del wrapper sea visible,
+   y sin borde-radius ni box-shadow propios. */
+.sede-marcha-blanca-wrap .sede-list-card{
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  transition: none;
 }
 
-/* Glow + entrance bounce de la card nueva en first visit */
-.sede-list-card.is-new.first-visit{
-  animation:newCardSlideIn .6s cubic-bezier(.2,.8,.2,1) .1s both,
-            newCardGlow 2.4s ease-out .6s 1;
-}
-@keyframes newCardSlideIn{
-  0%{opacity:0; transform:translateX(40px) scale(.96)}
-  100%{opacity:1; transform:translateX(0) scale(1)}
-}
-@keyframes newCardGlow{
-  0%{box-shadow:0 0 0 0 rgba(168,232,88,0)}
-  20%{box-shadow:0 0 40px 6px rgba(168,232,88,.55), 0 0 0 2px rgba(168,232,88,.4)}
-  60%{box-shadow:0 0 24px 4px rgba(168,232,88,.30), 0 0 0 1px rgba(168,232,88,.20)}
-  100%{box-shadow:0 0 0 0 rgba(168,232,88,0)}
-}
-/* Confetti pop alrededor del badge en first visit */
-.sede-list-card.is-new.first-visit .badge-nueva{
-  animation:badgePop .5s cubic-bezier(.34,1.56,.64,1) .55s both;
-}
-@keyframes badgePop{
-  0%{transform:scale(0); opacity:0}
-  60%{transform:scale(1.18); opacity:1}
-  100%{transform:scale(1); opacity:1}
-}
-/* Sparkles que salen del badge */
-.sede-list-card.is-new.first-visit .thumb::after{
-  content:"";
-  position:absolute; top:14px; left:14px;
-  width:60px; height:60px; pointer-events:none;
+/* Wrapper exterior: borde azul + gradiente de marca */
+.sede-marcha-blanca-wrap{
+  position:relative;
+  width:100%;
+  border:1px solid transparent;
+  border-radius:12px;
+  overflow:hidden;
   background:
-    radial-gradient(circle 3px at 10% 50%, #A8E858 100%, transparent 0),
-    radial-gradient(circle 2px at 70% 20%, #A8E858 100%, transparent 0),
-    radial-gradient(circle 2px at 90% 80%, #A8E858 100%, transparent 0),
-    radial-gradient(circle 2px at 30% 90%, #A8E858 100%, transparent 0);
-  animation:sparkleBurst 1.1s ease-out .8s 1 forwards;
-  opacity:0;
+    linear-gradient(171.56deg, #002AE1 12.77%, var(--surface-50) 33.97%);
+  cursor:pointer;
 }
-@keyframes sparkleBurst{
-  0%{opacity:0; transform:scale(.4)}
-  35%{opacity:1; transform:scale(1.15)}
-  100%{opacity:0; transform:scale(1.6)}
+.sede-marcha-blanca-wrap:active{transform:scale(.985)}
+
+/* Fila superior: "Nueva!" — "[N] días" — GRATIS */
+.marcha-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 10px 10px 16px;
+}
+.marcha-nueva-lbl{
+  font-family:var(--body); font-weight:700; font-size:16px; line-height:26px;
+  color:var(--text-950);
+}
+.marcha-right{
+  display:flex; align-items:center; gap:12px;
+}
+.marcha-dias{
+  font-family:var(--display); font-weight:700; font-size:14px; line-height:24px;
+  letter-spacing:0.2px; color:#fff; white-space:nowrap;
+}
+.marcha-gratis{
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--success-500);
+  color:var(--success-50);
+  font-family:var(--body); font-weight:700; font-size:10px; line-height:1;
+  padding:0 10px;
+  height:20px;
+  border-radius:6px 6px 6px 0; /* esquina inferior-izq cuadrada — speech bubble */
+}
+
+/* Card interior (fondo surface-100, borde azul en top/right/bottom) */
+.sede-marcha-card{
+  display:flex;
+  align-items:center;
+  background:var(--surface-100);
+  border-radius:12px;
+  border-top:1px solid var(--secondary-300);
+  border-right:1px solid var(--secondary-300);
+  border-bottom:1px solid var(--secondary-300);
+  overflow:hidden;
+  width:100%;
+}
+.sede-marcha-card .thumb{
+  flex:0 0 80px;
+  height:116px;
+  overflow:hidden;
+  position:relative;
+}
+.sede-marcha-card .thumb img{
+  position:absolute; inset:0;
+  width:100%; height:100%; object-fit:cover;
+}
+.sede-marcha-card .info{
+  flex:1; min-width:0;
+  display:flex; flex-direction:column; gap:6px;
+  padding:16px 16px 12px 16px;
+}
+.sede-marcha-card .head{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px;
+}
+.sede-marcha-card .head h3{
+  font-family:var(--display); font-weight:600; font-size:18px; line-height:28px;
+  color:var(--text-950); margin:0;
+}
+.sede-marcha-card .head .chev{
+  width:24px; height:24px; flex-shrink:0;
+  color:var(--text-950); opacity:.7;
+}
+/* Badge de ocupación en estilo warning (amarillo) */
+.sede-marcha-card .ocupacion-badge{
+  display:inline-flex; align-items:center; gap:4px;
+  background:#3C331D;
+  border-radius:6px;
+  padding:4px 8px;
+  height:24px;
+  width:fit-content;
+}
+.sede-marcha-card .ocupacion-badge .lbl{
+  font-family:var(--body); font-weight:500; font-size:10px; line-height:18px;
+  color:#FEF4AA;
+}
+.sede-marcha-card .ocupacion-badge .icons{
+  display:inline-flex; align-items:center;
+}
+.sede-marcha-card .ocupacion-badge .icons svg{
+  width:12px; height:12px; color:#FEF4AA;
+}
+.sede-marcha-card .ocupacion-badge .icons svg.dim{opacity:.4}
+.sede-marcha-card .meta-row{
+  display:flex; align-items:center; flex-wrap:wrap; gap:0;
+}
+.sede-marcha-card .meta{
+  display:inline-flex; align-items:center; gap:4px;
+  font-family:var(--body); font-weight:500; font-size:12px; line-height:20px;
+  color:var(--text-800);
+  padding:4px;
+}
+.sede-marcha-card .meta svg{
+  width:12px; height:12px; flex-shrink:0; color:var(--text-800);
 }
 
 /* ===================== BANNER "Tu pase incluye…" ===================== */
@@ -1147,7 +1423,7 @@ body.is-home .home-screen{display:flex}
   position:absolute; left:0; right:0; bottom:0;
   height:106px;
   background:var(--surface-200);
-  border-top:1px solid var(--surface-400);
+  border:1px solid var(--surface-400);
   border-radius:12px 12px 0 0;
   display:flex; flex-direction:column;
   z-index:30;
@@ -1184,6 +1460,7 @@ body.is-home .home-screen{display:flex}
 .nav-qr{
   width:64px; height:64px;
   background:var(--surface-500);
+  border:none; outline:none;
   border-radius:9999px;
   display:flex; align-items:center; justify-content:center;
   cursor:pointer;
@@ -1524,12 +1801,12 @@ body.is-home .home-screen{display:flex}
 </head>
 <body>
 
-<button class="reset-btn" id="reset-btn" title="Reinicia el flujo: vuelve a la primera entrada y abre el sheet">
+<button class="reset-btn" id="reset-btn" title="Reinicia la pantalla activa">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 12a9 9 0 1 0 3-6.7"/>
     <path d="M3 4v5h5"/>
   </svg>
-  Reset prototype
+  Reset
 </button>
 
 <div class="device" id="device">
@@ -1792,15 +2069,15 @@ body.is-home .home-screen{display:flex}
         <div class="week-row">
           <div class="week-day done">
             <span class="lbl">Lun</span>
-            <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+            <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#BDE986"/><path fill="#1C2B21" d="M10 14.17 6.41 10.59 5 12l5 5 9-9-1.41-1.41z"/></svg></span>
           </div>
           <div class="week-day done">
             <span class="lbl">Mar</span>
-            <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+            <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#BDE986"/><path fill="#1C2B21" d="M10 14.17 6.41 10.59 5 12l5 5 9-9-1.41-1.41z"/></svg></span>
           </div>
           <div class="week-day done">
             <span class="lbl">Mier</span>
-            <span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+            <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#BDE986"/><path fill="#1C2B21" d="M10 14.17 6.41 10.59 5 12l5 5 9-9-1.41-1.41z"/></svg></span>
           </div>
           <div class="week-day today">
             <span class="lbl">Jue</span>
@@ -1825,30 +2102,36 @@ body.is-home .home-screen{display:flex}
       <div class="home-body">
 
         <!-- A. Entrena en NEO Gym -->
-        <section>
+        <section class="gym-section">
           <h2 class="home-section-title">Entrena en NEO Gym</h2>
           <div class="primary-action-card">
             <div class="purchase-display-box">
-              <button class="pdb-btn" type="button" data-action="comprar-pase">
-                <span class="ico">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-2 8h-1.5v1.5H17V13zm-1.5 1.5H14V16h1.5v-1.5zM17 16h-1.5v1.5H17V16zm2-3h-1.5v1.5H19V13zm0 3h-1.5v1.5H19V16zm-3.5-1.5H17V13h-1.5v1.5zm2 0H19V13h-1.5v1.5zM22 7h-2V4h-3V2h5v5zm0 15v-5h-2v3h-3v2h5zM2 22h5v-2H4v-3H2v5zM2 2v5h2V4h3V2H2z"/></svg>
-                </span>
-                <span class="lbl">Comprar pase</span>
-              </button>
-              <span class="divider-v"></span>
-              <button class="pdb-btn" type="button" data-action="reservar-clase">
-                <span class="ico">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
-                </span>
-                <span class="lbl">Reservar clase</span>
-              </button>
+              <div class="pdb-row">
+                <button class="pdb-btn" type="button" data-action="comprar-pase">
+                  <span class="ico">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-2 8h-1.5v1.5H17V13zm-1.5 1.5H14V16h1.5v-1.5zM17 16h-1.5v1.5H17V16zm2-3h-1.5v1.5H19V13zm0 3h-1.5v1.5H19V16zm-3.5-1.5H17V13h-1.5v1.5zm2 0H19V13h-1.5v1.5zM22 7h-2V4h-3V2h5v5zm0 15v-5h-2v3h-3v2h5zM2 22h5v-2H4v-3H2v5zM2 2v5h2V4h3V2H2z"/></svg>
+                  </span>
+                  <span class="lbl">Comprar pase</span>
+                </button>
+                <span class="divider-v"></span>
+                <button class="pdb-btn" type="button" data-action="reservar-clase">
+                  <span class="ico">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+                  </span>
+                  <span class="lbl">Reservar clase</span>
+                </button>
+              </div>
             </div>
             <div class="consumo-toast">
-              <span class="money-ico">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-              </span>
-              <span class="price">1.000</span>
-              <span class="desc">Tu consumo del mes</span>
+              <div class="toast-inner">
+                <span class="money-ico">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                </span>
+                <div class="text-wrap">
+                  <span class="price">1.000</span>
+                  <span class="desc">Tu consumo del mes</span>
+                </div>
+              </div>
               <button class="plus" type="button" aria-label="Agregar">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
               </button>
@@ -1859,20 +2142,29 @@ body.is-home .home-screen{display:flex}
         <!-- B. InstruccionModal Nueva sede -->
         <section>
           <div class="home-instruccion-modal" id="home-instruccion-modal">
+            <div class="bg-layer" aria-hidden="true">
+              <img src="assets/figma/instruccion-modal-bg.png" alt=""/>
+            </div>
             <button class="close" type="button" aria-label="Cerrar" id="home-instruccion-close">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
             </button>
-            <img class="building-3d" src="assets/figma/home-edificio-3d.png" alt=""/>
-            <div class="text-block">
-              <p class="eyebrow">Nueva sede NEO Gym:</p>
-              <h3>Independencia</h3>
-              <p class="copy">¡Nos expandimos, ahora vas a poder entrenar en más de una sede!</p>
-              <span class="addr">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>Independencia 3345</span>
-              </span>
+
+            <div class="gratis-badge">
+              <div class="gratis-pill"><span class="label">GRATIS</span></div>
+              <span class="days">[7] días</span>
             </div>
-            <button class="cta" type="button" data-action="explorar-ofertas">Explorar ofertas</button>
+
+            <div class="text-block">
+              <h3>Nueva sede: Independencia</h3>
+              <p class="copy">Disfruta de una semana entera grátis.</p>
+            </div>
+
+            <span class="addr">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span>Independencia 3345</span>
+            </span>
+
+            <button class="cta" type="button" data-action="mas-informacion">Más información</button>
           </div>
         </section>
 
@@ -1884,11 +2176,19 @@ body.is-home .home-screen{display:flex}
           <h2 class="home-section-title">Progresa en NEO Digital</h2>
           <div class="digital-list">
             <div class="digital-promo-card" data-digital="entrenamiento">
-              <div class="bg" style="background-image:url('assets/figma/home-entrenamiento.png')"></div>
+              <div class="base" aria-hidden="true"></div>
+              <div class="bg-img-wrap" aria-hidden="true">
+                <img src="assets/figma/home-entrenamiento.png" alt="" style="left:47.4%; top:-76.62%; width:118.9%; height:228.86%"/>
+              </div>
+              <div class="overlay" aria-hidden="true"></div>
               <span class="lbl">Entrenamiento &amp; Nutrición</span>
             </div>
             <div class="digital-promo-card" data-digital="wellness">
-              <div class="bg" style="background-image:url('assets/figma/home-wellness.png')"></div>
+              <div class="base" aria-hidden="true"></div>
+              <div class="bg-img-wrap" aria-hidden="true">
+                <img src="assets/figma/home-wellness.png" alt="" style="left:35.41%; top:0; width:92.28%; height:100%"/>
+              </div>
+              <div class="overlay" aria-hidden="true"></div>
               <span class="lbl">Wellness On-demand</span>
             </div>
           </div>
@@ -1903,13 +2203,53 @@ body.is-home .home-screen{display:flex}
         <h1>Sedes NEO</h1>
       </div>
       <div class="sedes-card-list">
+        <!-- MARCHA BLANCA: Sede nueva, gratis por tiempo determinado -->
+        <div class="sede-marcha-blanca-wrap anim-v1-enter" data-id="santiago">
+          <div class="marcha-header anim-collapsed">
+            <span class="marcha-nueva-lbl">Nueva!</span>
+            <div class="marcha-right">
+              <span class="marcha-dias"><span class="marcha-dias-num">7</span> días</span>
+              <span class="marcha-gratis">GRATIS</span>
+            </div>
+          </div>
+          <div class="sede-list-card">
+            <div class="thumb">
+              <img src="assets/figma/sede-independencia.png" alt=""/>
+            </div>
+            <div class="info">
+              <div class="head">
+                <h3>Independencia</h3>
+                <svg class="chev" viewBox="0 0 24 24" fill="currentColor"><path d="M9.29 6.71a1 1 0 0 0 0 1.41L13.17 12l-3.88 3.88a1 1 0 1 0 1.41 1.41l4.59-4.59a1 1 0 0 0 0-1.41L10.7 6.7a1 1 0 0 0-1.41.01z"/></svg>
+              </div>
+              <div class="ocupacion-badge">
+                <span class="lbl">Ocupación actual:</span>
+                <span class="icons">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </span>
+              </div>
+              <div class="meta-row">
+                <span class="meta">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  <span>Av. Independencia 9460</span>
+                </span>
+                <span class="meta">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.7 0-3.2-.9-4-2.2l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+                  <span>300 m</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
         <article class="sede-list-card" data-id="froilan">
           <div class="thumb">
             <img src="assets/figma/sede-froilan.png" alt=""/>
           </div>
           <div class="info">
             <div class="head">
-              <h3>NEO Florian Roa</h3>
+              <h3>NEO Froilán Roa</h3>
               <span class="price">$1.000</span>
             </div>
             <div class="ocupacion-badge">
@@ -1933,41 +2273,6 @@ body.is-home .home-screen{display:flex}
             </div>
           </div>
         </article>
-        <article class="sede-list-card is-new" data-id="santiago">
-          <div class="thumb">
-            <img src="assets/figma/sede-independencia.png" alt=""/>
-            <span class="badge-nueva"><span class="lbl">Nueva</span></span>
-          </div>
-          <div class="info">
-            <div class="head">
-              <h3>Santiago Centro</h3>
-              <span class="price">$1.000</span>
-            </div>
-            <div class="ocupacion-badge">
-              <span class="lbl">Ocupación actual:</span>
-              <span class="icons">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                <svg class="dim" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-              </span>
-            </div>
-            <div class="meta-row">
-              <span class="meta">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>Grajales</span>
-              </span>
-              <span class="meta">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.7 0-3.2-.9-4-2.2l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
-                <span>300 m</span>
-              </span>
-            </div>
-          </div>
-        </article>
-      </div>
-      <div class="lanzamos-banner" id="lanzamos-banner">
-        <span class="dot"></span>
-        <p>¡Lanzamos otra sede!</p>
       </div>
     </div>
 
@@ -2287,17 +2592,7 @@ els.verDetalle.addEventListener('click', e => {
   showToast('→ Detalle de sede');
 });
 
-/* Reset prototype — vuelve al estado de "primera entrada" */
-els.resetBtn.addEventListener('click', () => {
-  state.currentSedeId = DEFAULT_SEDE_ID;
-  state.pickedSedeId  = DEFAULT_SEDE_ID;
-  state.aplicarShown  = false;
-  state.isFirstEntry  = true; /* reabre el flujo de primera entrada */
-  els.currentSedeName.textContent = SEDES[DEFAULT_SEDE_ID].name;
-  els.scroll.classList.remove('is-loading');
-  refreshSheetUI();
-  openSheet();
-});
+/* Reset — comportamiento contextual según la pantalla activa */
 
 /* First entry: abre sheet en cada reload */
 window.addEventListener('load', () => {
@@ -2306,7 +2601,69 @@ window.addEventListener('load', () => {
 
 /* ===================== BOTTOM NAV — tab switching ===================== */
 const navTabs = document.querySelectorAll('.nav-tab');
-let sedesFirstVisit = true; /* se resetea por reset-btn también */
+
+/* ── Lógica animación de entrada Sedes ── */
+let sedesFirstVisit = true;
+let animTimer = null;
+
+function playSedesEntrance(){
+  const wrap = document.querySelector('.sede-marcha-blanca-wrap');
+  const header = document.querySelector('.marcha-header');
+
+  /* Deshabilitar transiciones PRIMERO, antes de tocar cualquier clase.
+     Así el cleanup no flashea nada visualmente. */
+  if(wrap)   wrap.style.transition = 'none';
+  if(header) header.style.transition = 'none';
+
+  /* Limpiar estado anterior */
+  clearTimeout(animTimer);
+  document.body.classList.remove('sedes-playing-v1');
+  if(wrap)   wrap.classList.remove('anim-v1-enter','anim-v1-stroke','sede-revealed');
+  if(header) header.classList.remove('anim-collapsed');
+
+  /* Estado inicial: ambas cards 100% visibles, pero Independencia
+     se ve como card regular (overlay opaco cubre gradiente, header colapsado).
+     Sin animación de entrada — las cards están desde el frame 0. */
+  if(header) header.classList.add('anim-collapsed');
+  if(wrap)   wrap.classList.add('anim-v1-enter');
+
+  /* Reflow: fuerza aplicación inmediata de las clases, luego restaura transiciones */
+  void document.body.offsetWidth;
+  if(wrap)   wrap.style.transition = '';
+  if(header) header.style.transition = '';
+
+  document.body.classList.add('sedes-playing-v1');
+
+  /* FASE 1 (t=400ms): stroke aparece + overlay se levanta → gradiente azul se revela */
+  animTimer = setTimeout(() => {
+    if(wrap){
+      wrap.classList.remove('anim-v1-enter');
+      wrap.classList.add('anim-v1-stroke');
+    }
+
+    /* FASE 2 (t=1000ms total): header se expande → Froilán baja naturalmente */
+    animTimer = setTimeout(() => {
+      if(header) header.classList.remove('anim-collapsed');
+
+      /* Apagar glow (t=2200ms total): quitar stroke, mantener borde con sede-revealed */
+      animTimer = setTimeout(() => {
+        if(wrap){
+          wrap.classList.remove('anim-v1-stroke');
+          wrap.classList.add('sede-revealed');
+        }
+
+        /* Cleanup final (t=3000ms total) */
+        animTimer = setTimeout(() => {
+          document.body.classList.remove('sedes-playing-v1');
+        }, 800);
+
+      }, 1200);
+
+    }, 600);
+
+  }, 400);
+}
+
 function activateTab(label){
   navTabs.forEach(t => {
     const isActive = t.querySelector('.lbl')?.textContent.trim() === label;
@@ -2314,13 +2671,9 @@ function activateTab(label){
   });
   document.body.classList.toggle('is-sedes', label === 'Sedes');
   document.body.classList.toggle('is-home', label === 'Home');
-  if (label === 'Sedes' && sedesFirstVisit){
+  if(label === 'Sedes' && sedesFirstVisit){
     sedesFirstVisit = false;
-    playSedesWow();
-  } else if (label === 'Sedes'){
-    // visitas siguientes — solo render limpio, sin animar
-    const card = document.querySelector('.sede-list-card.is-new');
-    card?.classList.remove('first-visit');
+    requestAnimationFrame(() => requestAnimationFrame(playSedesEntrance));
   }
 }
 navTabs.forEach(tab => {
@@ -2344,29 +2697,35 @@ document.querySelectorAll('.home-screen [data-action]').forEach(b => {
     const map = {
       'comprar-pase':'Comprar pase',
       'reservar-clase':'Reservar clase',
-      'explorar-ofertas':'Explorar ofertas',
+      'mas-informacion':'Más información',
     };
     showToast(`→ ${map[b.dataset.action]}`);
   });
 });
 
-function playSedesWow(){
-  const card = document.querySelector('.sede-list-card.is-new');
-  const banner = document.getElementById('lanzamos-banner');
-  if (!card || !banner) return;
-  card.classList.remove('first-visit');
-  banner.classList.remove('is-on');
-  // forzar reflow para reiniciar la animación
-  void card.offsetWidth;
-  void banner.offsetWidth;
-  card.classList.add('first-visit');
-  setTimeout(() => banner.classList.add('is-on'), 250);
-}
-
-/* Reset también resetea el wow effect de Sedes */
+/* ── Reset contextual: reacciona según la pantalla activa ── */
 els.resetBtn.addEventListener('click', () => {
-  sedesFirstVisit = true;
-  activateTab('Explorar');
+  const onSedes = document.body.classList.contains('is-sedes');
+
+  if(onSedes){
+    /* En Sedes: re-reproduce la animación de entrada */
+    clearTimeout(animTimer);
+    requestAnimationFrame(() => requestAnimationFrame(playSedesEntrance));
+  } else {
+    /* En cualquier otra pantalla: reset general del prototipo */
+    state.currentSedeId = DEFAULT_SEDE_ID;
+    state.pickedSedeId  = DEFAULT_SEDE_ID;
+    state.aplicarShown  = false;
+    state.isFirstEntry  = true;
+    sedesFirstVisit     = true;
+    els.currentSedeName.textContent = SEDES[DEFAULT_SEDE_ID].name;
+    els.scroll.classList.remove('is-loading');
+    clearTimeout(animTimer);
+    document.body.classList.remove('sedes-playing-v1');
+    refreshSheetUI();
+    openSheet();
+    activateTab('Explorar');
+  }
 });
 
 /* Cards de salas (placeholder toast) */
