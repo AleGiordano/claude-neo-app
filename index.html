@@ -1797,9 +1797,28 @@ section.gym-section .home-section-title{margin-bottom:17px}
   white-space:nowrap;
 }
 .toast.is-on{opacity:1; transform:translateX(-50%) translateY(0)}
+
+/* Volver al hub de issues (backlog) */
+.backlog-link{
+  position:fixed; top:24px; left:24px; z-index:1000;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 16px; border-radius:999px; text-decoration:none;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  color:#FEFEFF; font-family:var(--display); font-weight:500; font-size:13px;
+  cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  transition:background .2s ease, transform .15s ease;
+}
+.backlog-link:hover{background:rgba(255,255,255,.14)}
+.backlog-link:active{transform:scale(.97)}
+.backlog-link svg{width:14px; height:14px}
 </style>
 </head>
 <body>
+
+<a class="backlog-link" href="issues.html" title="Volver al backlog de issues">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+  Backlog
+</a>
 
 <button class="reset-btn" id="reset-btn" title="Reinicia la pantalla activa">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
