@@ -126,10 +126,13 @@ body{
     var(--surface-50);
 }
 
-/* ===================== STATUS BAR ===================== */
-.status-bar-area{
-  position:absolute; top:0; left:0; right:0; height:54px; z-index:100;
-  pointer-events:none; padding-top:10px; background:transparent;
+/* ===================== TOPBAR FIJO (status bar + fecha + gradiente) =====================
+   Header de 142px con gradiente #0021AF que se desvanece abajo (Figma 21060:54047).
+   Queda fijo arriba y el contenido se funde al scrollear por debajo. */
+.topbar{
+  position:absolute; top:0; left:0; right:0; height:142px; z-index:100;
+  pointer-events:none; padding-top:10px;
+  background:linear-gradient(180deg, #0021AF 0%, #0021AF 68.7%, rgba(0,33,175,0) 100%);
 }
 .status-bar{display:flex; height:44px; align-items:center}
 .status-bar .left, .status-bar .right{flex:1; padding:0 24px; display:flex; align-items:center; height:100%}
@@ -140,9 +143,9 @@ body{
   font-size:17px; line-height:22px; color:var(--text-950); letter-spacing:-0.408px;
 }
 
-/* ===================== HEADER (Hoy Jueves 19 + cerrar) — fijo ===================== */
+/* Fila de la fecha (Hoy Jueves 19 + cerrar) */
 .pase-header{
-  position:absolute; top:54px; left:0; right:0; height:49px; z-index:90;
+  position:relative; height:49px;
   display:flex; align-items:center; justify-content:center; padding:0 20px;
 }
 .pase-header h1{
@@ -151,7 +154,7 @@ body{
 }
 .pase-header .close{
   position:absolute; right:16px; top:50%; transform:translateY(-50%);
-  width:32px; height:32px; border:0; background:transparent; cursor:pointer;
+  width:32px; height:32px; border:0; background:transparent; cursor:pointer; pointer-events:auto;
   display:flex; align-items:center; justify-content:center; color:var(--text-950);
   border-radius:999px; transition:background .18s ease;
 }
@@ -179,9 +182,9 @@ body{
 }
 .promo.dismissed{opacity:0; overflow:hidden; transform:translateY(-6px); max-height:0; min-height:0; padding-top:0; padding-bottom:0; margin-top:-16px; pointer-events:none}
 .promo .ill{
-  position:absolute; left:-6px; top:50%; transform:translateY(-50%);
-  width:56px; height:56px; object-fit:contain;
-  filter:drop-shadow(0 6px 14px rgba(0,46,247,.35));
+  position:absolute; left:-8px; top:50%; transform:translateY(-50%);
+  width:66px; height:66px; object-fit:contain;
+  filter:drop-shadow(0 8px 16px rgba(0,46,247,.38));
 }
 .promo .copy{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
 .promo .copy .t1{font-family:var(--body); font-weight:700; font-size:14px; line-height:24px; color:var(--text-800)}
@@ -249,19 +252,21 @@ body{
 .tk-h2{margin:2px 0 0; font-family:var(--display); font-weight:700; font-size:20px; line-height:30px; color:var(--text-950); text-align:center}
 
 .notif{
-  position:relative; margin-top:24px; border-radius:12px; overflow:hidden;
-  padding:12px 40px 12px 55px; min-height:72px; display:flex; align-items:center; gap:12px;
+  position:relative; margin-top:24px; border-radius:12px; overflow:visible;
+  padding:12px 40px 12px 58px; min-height:72px; display:flex; align-items:center; gap:12px;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 8px 24px rgba(0,0,0,.28);
   background:
     linear-gradient(130.6deg, rgba(0,46,247,.90) 10.9%, rgba(0,46,247,0) 39.6%),
     linear-gradient(186.6deg, rgba(17,19,23,.20) 39.8%, rgba(96,111,140,.20) 151%),
     var(--surface-200);
   transition:opacity .3s ease, transform .3s ease, max-height .35s ease, margin .35s ease, padding .35s ease;
 }
-.notif.dismissed{opacity:0; transform:translateY(-6px); max-height:0; min-height:0; padding-top:0; padding-bottom:0; margin-top:0; pointer-events:none}
+.notif.dismissed{overflow:hidden; opacity:0; transform:translateY(-6px); max-height:0; min-height:0; padding-top:0; padding-bottom:0; margin-top:0; border-color:transparent; box-shadow:none; pointer-events:none}
 .notif .ill{
-  position:absolute; left:-16px; top:50%; transform:translateY(-50%);
-  width:66px; height:74px; object-fit:contain;
-  filter:drop-shadow(0 6px 14px rgba(0,46,247,.30));
+  position:absolute; left:-18px; top:50%; transform:translateY(-50%);
+  width:74px; height:82px; object-fit:contain;
+  filter:drop-shadow(0 8px 16px rgba(0,46,247,.38));
 }
 .notif .copy{flex:1; min-width:0; font-family:var(--body); font-weight:400; font-size:14px; line-height:24px; color:var(--text-800)}
 .notif .x{
@@ -333,8 +338,8 @@ body{
   <div class="screen">
     <div class="notch"></div>
 
-    <!-- Status bar -->
-    <div class="status-bar-area">
+    <!-- Topbar fijo: status bar + fecha con gradiente -->
+    <div class="topbar">
       <div class="status-bar">
         <div class="left"><span class="time">9:00</span></div>
         <div class="right">
@@ -343,14 +348,12 @@ body{
           <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="white" opacity=".55"/><rect x="2" y="2" width="19" height="9" rx="1.5" fill="white"/><rect x="23.5" y="4" width="2" height="5" rx=".5" fill="white" opacity=".55"/></svg>
         </div>
       </div>
-    </div>
-
-    <!-- Header fijo -->
-    <div class="pase-header">
-      <h1 id="headerDay">Hoy Jueves 19</h1>
-      <button class="close" type="button" onclick="flash('Cerrar pase')" aria-label="Cerrar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
-      </button>
+      <div class="pase-header">
+        <h1 id="headerDay">Hoy Jueves 19</h1>
+        <button class="close" type="button" onclick="flash('Cerrar pase')" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
     </div>
 
     <!-- Scroll -->
