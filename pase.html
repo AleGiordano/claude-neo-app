@@ -170,6 +170,15 @@ body{
 .scroll::-webkit-scrollbar{display:none}
 .container{padding:20px; display:flex; flex-direction:column; gap:16px}
 
+/* Link a soporte de pases */
+.support-link{
+  display:block; text-align:center; text-decoration:none;
+  margin-top:4px; padding:8px 0 12px;
+  font-family:var(--body); font-weight:400; font-size:14px; line-height:24px; color:var(--surface-800);
+}
+.support-link span{color:var(--text-900); text-decoration:underline; text-underline-offset:3px}
+.support-link:hover span{color:var(--text-950)}
+
 /* ===================== PROMO TOAST (con ilustración) ===================== */
 .promo{
   position:relative; border-radius:12px; overflow:visible;
@@ -437,6 +446,9 @@ body{
           </div>
 
         </div>
+
+        <!-- Link a soporte de pases (en todos los pases) -->
+        <a class="support-link" href="soporte.html">¿Necesitas ayuda? <span>Ir a soporte de pases</span></a>
 
       </div>
     </div>
