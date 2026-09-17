@@ -160,6 +160,60 @@ body{
 .buy-btn{height:52px; padding:0 28px; border:0; cursor:pointer; background:var(--secondary-300); border-radius:14px; color:#fff; font-family:var(--display); font-weight:600; font-size:16px; transition:filter .15s ease, transform .12s ease}
 .buy-btn:hover{filter:brightness(1.08)} .buy-btn:active{transform:scale(.98)}
 
+/* Cierre programado (header) */
+.closure-box{
+  display:flex; gap:12px; align-items:flex-start; margin-top:4px;
+  padding:14px 16px; border-radius:12px; background:var(--surface-100);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+}
+.closure-box .cb-ic{width:26px; height:26px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--text-950)}
+.closure-box .cb-ic svg{width:22px; height:22px}
+.closure-box .cb-copy{display:flex; flex-direction:column; gap:4px}
+.closure-box .cb-title{font-family:var(--display); font-weight:600; font-size:15px; color:var(--text-950)}
+.closure-box .cb-desc{font-family:var(--body); font-weight:400; font-size:14px; line-height:22px; color:var(--surface-800)}
+
+/* Cartel sobre precios dinámicos */
+.price-notice{
+  display:flex; gap:10px; align-items:flex-start; width:100%;
+  padding:12px 14px; border-radius:12px;
+  background:rgba(84,19,19,.30); border:1px solid rgba(244,120,91,.35); color:var(--error-800);
+  font-family:var(--body); font-weight:500; font-size:13px; line-height:20px;
+}
+.price-notice svg{width:18px; height:18px; flex-shrink:0; margin-top:1px}
+
+/* Caja de control de cierres */
+.cierre-dock{
+  position:fixed; right:24px; top:50%; transform:translateY(-50%); z-index:1000;
+  width:250px; max-height:calc(100vh - 48px); overflow:auto;
+  padding:16px; border-radius:18px;
+  background:rgba(22,26,34,.82); border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 20px 50px rgba(0,0,0,.45);
+  scrollbar-width:none;
+}
+.cierre-dock::-webkit-scrollbar{display:none}
+.cd-head{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.cd-title{font-family:var(--display); font-weight:600; font-size:14px; color:var(--text-950)}
+.cd-body{margin-top:14px; display:flex; flex-direction:column; gap:14px; opacity:.4; pointer-events:none; transition:opacity .2s ease}
+.cierre-dock.on .cd-body{opacity:1; pointer-events:auto}
+.cd-when.disabled{opacity:.35; pointer-events:none}
+.cd-group{display:flex; flex-direction:column; gap:7px}
+.cd-label{font-family:var(--display); font-weight:600; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--secondary-600)}
+.seg{display:flex; flex-wrap:wrap; gap:6px}
+.seg-btn{border:0; cursor:pointer; border-radius:8px; padding:7px 10px; background:var(--surface-300); color:var(--text-800); font-family:var(--display); font-weight:500; font-size:12px; transition:background .15s ease, color .15s ease}
+.seg-btn:hover{background:var(--surface-400); color:var(--text-950)}
+.seg-btn.active{background:var(--secondary-300); color:#fff}
+.cd-note{margin:2px 0 0; font-family:var(--body); font-weight:400; font-size:11px; line-height:16px; color:var(--surface-800)}
+.cd-note b{color:var(--text-800); font-weight:600}
+.switch{position:relative; display:inline-block; width:40px; height:22px; cursor:pointer; flex-shrink:0}
+.switch input{position:absolute; opacity:0; width:0; height:0}
+.switch .track{position:absolute; inset:0; border-radius:999px; background:var(--surface-400); transition:background .2s ease}
+.switch .track::before{content:""; position:absolute; left:3px; top:3px; width:16px; height:16px; border-radius:999px; background:#fff; transition:transform .2s ease}
+.switch input:checked + .track{background:var(--secondary-300)}
+.switch input:checked + .track::before{transform:translateX(18px)}
+@media (max-width:1024px){
+  .cierre-dock{top:auto; bottom:16px; right:50%; transform:translateX(50%); width:calc(100vw - 32px); max-width:390px}
+}
+
 /* Toast */
 .toast{position:absolute; top:56px; left:50%; transform:translateX(-50%) translateY(-16px); z-index:300; max-width:calc(100% - 32px); padding:12px 16px; border-radius:12px; background:rgba(33,38,49,.97); border:1px solid var(--border-50); color:var(--text-950); font-family:var(--display); font-weight:500; font-size:13px; box-shadow:0 2px 10px rgba(38,38,38,.5); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
@@ -171,6 +225,40 @@ body{
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
   Issues
 </a>
+
+<!-- Caja de control de cierres -->
+<div class="cierre-dock" id="cierreDock">
+  <div class="cd-head">
+    <span class="cd-title">Cierre de sede</span>
+    <label class="switch"><input type="checkbox" id="cierreToggle" onchange="onToggle()"><span class="track"></span></label>
+  </div>
+  <div class="cd-body" id="cierreBody">
+    <div class="cd-group">
+      <span class="cd-label">Momento</span>
+      <div class="seg" data-key="momento">
+        <button class="seg-btn active" data-val="manana">Cierra mañana</button>
+        <button class="seg-btn" data-val="hoy">Cerrada hoy</button>
+        <button class="seg-btn" data-val="porcerrar">Por cerrar</button>
+      </div>
+    </div>
+    <div class="cd-group cd-when">
+      <span class="cd-label">Días</span>
+      <div class="seg" data-key="dias">
+        <button class="seg-btn active" data-val="unico">Día único</button>
+        <button class="seg-btn" data-val="rango">Rango de días</button>
+      </div>
+    </div>
+    <div class="cd-group cd-when">
+      <span class="cd-label">Horario</span>
+      <div class="seg" data-key="horario">
+        <button class="seg-btn active" data-val="todo">Todo el día</button>
+        <button class="seg-btn" data-val="uno">Un rango</button>
+        <button class="seg-btn" data-val="doble">Doble rango</button>
+      </div>
+    </div>
+    <p class="cd-note">El cierre se refleja en el <b>header</b> y sobre los <b>precios dinámicos</b>.</p>
+  </div>
+</div>
 
 <div class="device">
   <div class="screen">
@@ -240,6 +328,17 @@ body{
           <a href="#" onclick="flash('Abrir mapa'); return false;">Avenida Raúl Labbé, 12613</a>
           <svg class="pin2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 7.5H22l-6 4.5 2.3 7.5L12 17l-6.3 4.5L8 14l-6-4.5h7.5z"/></svg>
         </div>
+
+        <!-- Cierre programado (se activa desde la caja de control) -->
+        <div class="closure-box" id="closureBox" hidden>
+          <span class="cb-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17"/><path d="M14 12v.5"/></svg>
+          </span>
+          <div class="cb-copy">
+            <span class="cb-title">Cierre programado</span>
+            <span class="cb-desc" id="closureDesc">Cierra mañana, jueves 19. Cerrado todo el día</span>
+          </div>
+        </div>
       </div>
 
       <!-- Precios -->
@@ -252,6 +351,13 @@ body{
           </div>
           <div class="big-price">$1.000</div>
         </div>
+
+        <!-- Cartel de sede cerrada (por encima de los precios dinámicos) -->
+        <div class="price-notice" id="priceNotice" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg>
+          <span id="priceNoticeText">Sede cerrada: Solo puedes visualizar los precios según la ocupación estimada de la próxima apertura de la sede.</span>
+        </div>
+
         <div class="example">
           <span class="cap">Precios dinámicos por ocupación estimada</span>
           <div class="price-rows">
@@ -351,6 +457,89 @@ function flash(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(toastId); toastId=setTimeout(()=>t.classList.remove('show'),1600);
 }
+
+/* ===================== CIERRES =====================
+   Combinaciones: momento (manana|hoy|porcerrar) · dias (unico|rango) · horario (todo|uno|doble)
+   Wordings CONFIRMADOS del Figma: "Cierra mañana" + día único (todo/uno/doble).
+   El resto son DRAFT para afinar. */
+const CLOSURE = { active:false, momento:'manana', dias:'unico', horario:'todo' };
+
+function horarioTxt(h){
+  if(h==='doble') return 'de 09:00 a 12:00 y de 15:00 a 18:00 hs';
+  if(h==='uno')   return 'de 14:00 a 18:00 hs';
+  return null; // todo el día
+}
+function diasTxt(momento, dias){
+  if(dias==='rango') return 'del jueves 19 al domingo 22';
+  return momento==='hoy' ? 'hoy, jueves 19' : 'mañana, jueves 19';
+}
+function headerWording(c){
+  if(c.momento==='porcerrar')
+    return 'La sede está por cerrar. Ya no se pueden comprar pases por hoy.';
+  const verbo = c.momento==='hoy' ? 'Cerrada' : 'Cierra';
+  const base  = `${verbo} ${diasTxt(c.momento, c.dias)}`;
+  const hor   = horarioTxt(c.horario);
+  return hor ? `${base} ${hor}` : `${base}. Cerrado todo el día`;
+}
+function priceNoticeWording(c){
+  if(c.momento==='manana') return null;   // el anuncio de mañana no afecta los precios de hoy
+  if(c.momento==='porcerrar') return 'La sede está por cerrar. Estos son los precios estimados para la próxima apertura.';
+  return 'Sede cerrada: Solo puedes visualizar los precios según la ocupación estimada de la próxima apertura de la sede.';
+}
+
+function renderClosure(){
+  const box=document.getElementById('closureBox');
+  const notice=document.getElementById('priceNotice');
+  if(!CLOSURE.active){
+    box.hidden=true; notice.hidden=true;
+  } else {
+    document.getElementById('closureDesc').textContent = headerWording(CLOSURE);
+    box.hidden=false;
+    const pn=priceNoticeWording(CLOSURE);
+    if(pn){ document.getElementById('priceNoticeText').textContent=pn; notice.hidden=false; }
+    else notice.hidden=true;
+  }
+  const porcerrar = CLOSURE.momento==='porcerrar';
+  document.querySelectorAll('.cd-when').forEach(el=>el.classList.toggle('disabled', CLOSURE.active && porcerrar));
+  const url=new URL(location);
+  if(CLOSURE.active) url.searchParams.set('cierre', porcerrar ? 'porcerrar' : [CLOSURE.momento,CLOSURE.dias,CLOSURE.horario].join('-'));
+  else url.searchParams.delete('cierre');
+  history.replaceState(null,'',url);
+}
+
+function onToggle(){
+  CLOSURE.active=document.getElementById('cierreToggle').checked;
+  document.getElementById('cierreDock').classList.toggle('on', CLOSURE.active);
+  renderClosure();
+}
+
+document.querySelectorAll('.cierre-dock .seg').forEach(seg=>{
+  const key=seg.dataset.key;
+  seg.querySelectorAll('.seg-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      seg.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      CLOSURE[key]=btn.dataset.val;
+      renderClosure();
+    };
+  });
+});
+
+(function initCierre(){
+  const c=new URLSearchParams(location.search).get('cierre');
+  if(c){
+    CLOSURE.active=true;
+    document.getElementById('cierreToggle').checked=true;
+    document.getElementById('cierreDock').classList.add('on');
+    if(c==='porcerrar') CLOSURE.momento='porcerrar';
+    else{ const [m,d,h]=c.split('-'); if(m)CLOSURE.momento=m; if(d)CLOSURE.dias=d; if(h)CLOSURE.horario=h; }
+    document.querySelectorAll('.cierre-dock .seg').forEach(seg=>{
+      const val=CLOSURE[seg.dataset.key];
+      seg.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===val));
+    });
+  }
+  renderClosure();
+})();
 </script>
 </body>
 </html>
