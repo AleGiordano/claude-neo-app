@@ -77,8 +77,11 @@ a.card:hover .go{opacity:1; transform:translateX(0)}
 .mock .m-line.s{width:62%}
 .mock .m-line.xs{width:40%; margin:0 auto}
 
+.thumb.photo{padding:0}
+.thumb.photo img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.thumb.photo::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(15,18,23,.15), rgba(15,18,23,.6))}
 .status{
-  position:absolute; top:12px; left:12px; display:inline-flex; align-items:center; gap:6px;
+  position:absolute; top:12px; left:12px; z-index:2; display:inline-flex; align-items:center; gap:6px;
   padding:5px 10px; border-radius:999px; background:rgba(15,18,23,.6); backdrop-filter:blur(6px);
   font-family:var(--display); font-weight:600; font-size:11px; color:var(--text-900);
 }
@@ -130,6 +133,22 @@ a.card:hover .go{opacity:1; transform:translateX(0)}
         <p class="desc">Pantalla del pase con QR dinámico, timer de ingreso, extensión de tiempo y check-in / check-out.</p>
         <div class="foot-row">
           <span class="updated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Última actualización · 15/09/26</span>
+          <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Detalle de sede -->
+    <a class="card" href="sede.html">
+      <div class="thumb photo">
+        <img src="assets/figma/sede-hero.png" alt="" />
+        <span class="status dev"><span class="led"></span> En desarrollo</span>
+      </div>
+      <div class="body">
+        <h2>Detalle de sede</h2>
+        <p class="desc">Info de la sede, horarios, precios dinámicos por ocupación, experiencias y servicios, con barra de compra fija.</p>
+        <div class="foot-row">
+          <span class="updated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Última actualización · 17/09/26</span>
           <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></span>
         </div>
       </div>

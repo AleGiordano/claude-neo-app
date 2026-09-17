@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>NEO · Detalle de sede · Prototipo dev</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Wix+Madefor+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   NEO · Detalle de sede — Prototipo (pixel perfect)
+   Figma: Detalle de sede → 21099:124537 · PurchaseActionsheet → 21099:124941
+   ===================================================================== */
+:root{
+  --surface-0:#111317;   --surface-50:#0F1217;   --surface-100:#161A22;
+  --surface-200:#1A1E26;  --surface-300:#212631;  --surface-400:#242A36;
+  --surface-800:#BBBDC1;  --surface-950:#FFFFFF;
+  --border-50:#33384A;    --border-100:#444D62;   --link:#A6BAF4;
+  --secondary-100:#0021AF; --secondary-300:#002EF7; --secondary-400:#3358F9; --secondary-600:#8A9FFB;
+  --text-600:#D4D4D4; --text-800:#E5E5E5; --text-900:#F5F5F5; --text-950:#FEFEFF;
+  --success-0:#1B3224; --success-500:#BDE986; --success-700:#E9FFA1; --success-800:#EFFFBA; --success-bg:#1C2B21;
+  --error-0:#531313; --error-500:#F4785B; --error-800:#FECACA;
+  --display:'Sora', ui-sans-serif, system-ui;
+  --body:'Wix Madefor Display', ui-sans-serif, system-ui;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#06070a;color:var(--text-950);font-family:var(--body);-webkit-font-smoothing:antialiased}
+body{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:48px 16px;
+  background:
+    radial-gradient(900px 600px at 80% -10%, rgba(0,46,247,.14), transparent 60%),
+    radial-gradient(700px 500px at -10% 100%, rgba(82,115,250,.08), transparent 60%),
+    #06070a;
+}
+
+.back-link{
+  position:fixed; top:24px; left:24px; z-index:1000;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 16px; border-radius:999px; text-decoration:none;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+  color:var(--text-950); font-family:var(--display); font-weight:500; font-size:13px;
+  backdrop-filter:blur(12px); transition:background .2s ease;
+}
+.back-link:hover{background:rgba(255,255,255,.12)}
+.back-link svg{width:14px;height:14px}
+
+/* Device */
+.device{
+  width:390px; height:844px; border-radius:42px; position:relative; overflow:hidden;
+  background:var(--surface-0);
+  box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 8px #1c1f26, 0 0 0 9px #2a2f3a, inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.notch{position:absolute; left:50%; top:10px; transform:translateX(-50%); width:118px; height:32px; border-radius:18px; background:#000; z-index:80}
+.screen{position:absolute; inset:0; overflow:hidden; background:var(--surface-0)}
+
+/* Topbar */
+.topbar{position:absolute; top:0; left:0; right:0; height:103px; z-index:100; background:var(--surface-0); pointer-events:none; padding-top:10px; box-shadow:0 1px 0 rgba(255,255,255,.04)}
+.status-bar{display:flex; height:44px; align-items:center}
+.status-bar .left, .status-bar .right{flex:1; padding:0 24px; display:flex; align-items:center; height:100%}
+.status-bar .left{justify-content:flex-start}
+.status-bar .right{justify-content:flex-end; gap:8px}
+.status-bar .time{font-family:'Helvetica',ui-sans-serif,system-ui; font-size:17px; line-height:22px; color:var(--text-950); letter-spacing:-0.408px}
+.hdr{position:relative; height:49px; display:flex; align-items:center; justify-content:center; padding:0 52px}
+.hdr h1{margin:0; font-family:var(--body); font-weight:500; font-size:17px; line-height:24px; color:var(--text-950)}
+.hdr .back{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:36px; height:36px; border:0; background:transparent; cursor:pointer; pointer-events:auto; display:flex; align-items:center; justify-content:center; color:var(--text-950); border-radius:999px; transition:background .18s ease}
+.hdr .back:hover{background:rgba(255,255,255,.10)}
+.hdr .back svg{width:24px; height:24px}
+
+/* Scroll */
+.scroll{position:absolute; inset:0; z-index:10; overflow-y:auto; overflow-x:hidden; padding-top:103px; padding-bottom:156px; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+/* Hero */
+.hero{position:relative; height:226px; overflow:hidden}
+.hero img{width:100%; height:100%; object-fit:cover; display:block}
+.hero::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(17,19,23,.15) 60%, var(--surface-0) 100%)}
+
+/* Info */
+.info{padding:16px; display:flex; flex-direction:column; gap:12px; background:var(--surface-0)}
+.info-top{display:flex; align-items:center; justify-content:space-between}
+.badge-occ{display:inline-flex; align-items:center; gap:4px; height:24px; padding:4px 8px; border-radius:6px; background:var(--success-bg)}
+.badge-occ .t{font-family:var(--body); font-weight:500; font-size:12px; line-height:20px; color:var(--success-800); white-space:nowrap}
+.avatars{display:inline-flex; align-items:center}
+.avatars .p{width:12px; height:12px; display:block}
+.avatars .p svg{width:12px; height:12px; display:block}
+.more-info{display:inline-flex; align-items:center; gap:4px; color:var(--text-600); font-family:var(--body); font-weight:500; font-size:14px; cursor:pointer}
+.more-info svg{width:16px; height:16px}
+.sede-title{margin:4px 0 0; font-family:var(--display); font-weight:600; font-size:24px; line-height:34px; color:var(--text-950)}
+.hours{display:flex; flex-direction:column; gap:2px; margin-top:6px}
+.hours .row{display:flex; align-items:center; justify-content:space-between; height:32px; opacity:.7}
+.hours .day{display:inline-flex; align-items:center; gap:6px; font-family:var(--body); font-weight:500; font-size:14px; color:var(--text-800)}
+.hours .day svg{width:14px; height:14px; color:var(--text-800)}
+.hours .day.indent{padding-left:20px}
+.hours .time{display:inline-flex; align-items:center; gap:6px; width:150px; font-family:var(--body); font-weight:500; font-size:14px; color:var(--text-800)}
+.hours .time svg{width:14px; height:14px; color:var(--text-800)}
+.howto{display:flex; align-items:center; gap:6px; margin-top:6px; font-family:var(--body); font-weight:500; font-size:14px; color:var(--text-800)}
+.howto svg{width:14px; height:14px; flex-shrink:0}
+.howto a{color:var(--link); text-decoration:underline; text-underline-offset:2px}
+.howto .pin2{color:var(--secondary-400)}
+
+/* Precios */
+.prices{padding:32px 16px; display:flex; flex-direction:column; align-items:center; gap:28px; background:var(--surface-0)}
+.prices h2{margin:0; font-family:var(--display); font-weight:600; font-size:16px; color:var(--text-950); text-align:center}
+.price-head{display:flex; flex-direction:column; align-items:center; gap:20px; width:100%}
+.pill-row{display:flex; gap:12px}
+.pill{display:inline-flex; align-items:center; gap:4px; height:24px; padding:4px 8px; border-radius:6px; font-family:var(--body); font-weight:500; font-size:12px; line-height:20px}
+.pill svg{width:12px; height:12px}
+.pill.now{background:var(--surface-300); color:var(--surface-800)}
+.pill.low{background:var(--success-700); color:var(--success-0); font-weight:700}
+.big-price{font-family:var(--display); font-weight:600; font-size:24px; line-height:34px; color:var(--text-950)}
+.example{width:100%; display:flex; flex-direction:column; align-items:center; gap:9px}
+.example .cap{font-family:var(--body); font-weight:500; font-size:14px; color:var(--text-800); text-align:center}
+.price-rows{width:100%; display:flex; flex-direction:column}
+.price-rows .pr{display:flex; align-items:center; justify-content:space-between; height:60px; padding:6px 12px; border-bottom:1px solid rgba(255,255,255,.1)}
+.pr-left{display:flex; align-items:center; gap:6px}
+.pr-hour{width:80px; padding:0 8px; font-family:var(--body); font-weight:500; font-size:14px; color:var(--text-950)}
+.badge-occ2{display:inline-flex; align-items:center; gap:4px; height:24px; padding:4px 8px; border-radius:6px}
+.badge-occ2 .t{font-family:var(--body); font-weight:500; font-size:12px; line-height:20px; white-space:nowrap}
+.badge-occ2.baja{background:var(--success-bg)} .badge-occ2.baja .t{color:var(--success-800)}
+.badge-occ2.alta{background:var(--error-0)} .badge-occ2.alta .t{color:var(--error-800)}
+.pr-right{display:flex; flex-direction:column; align-items:flex-end; gap:4px}
+.tag-low{display:inline-flex; align-items:center; padding:2px 6px; border-radius:6px 6px 6px 0; background:var(--success-700); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:10px; line-height:1}
+.pr-price{font-family:var(--body); font-weight:700; font-size:12px; color:var(--text-950)}
+.pr-price .approx{font-weight:400}
+.more-hours{height:40px; padding:0 20px; border:0; cursor:pointer; background:var(--surface-300); border-radius:12px; color:var(--text-900); font-family:var(--display); font-weight:600; font-size:14px; transition:filter .15s ease}
+.more-hours:hover{filter:brightness(1.12)}
+
+/* Explorar esta sede */
+.section{padding:0 16px}
+.section > .sec-title{margin:0 0 16px; padding-top:24px; font-family:var(--display); font-weight:600; font-size:16px; color:var(--text-950)}
+.exp{display:flex; flex-direction:column; gap:12px}
+.exp-card{position:relative; height:130px; border-radius:12px; overflow:hidden; background:var(--surface-200); display:flex; align-items:center; cursor:pointer}
+.exp-card .lbl{position:relative; z-index:2; padding:20px; font-family:var(--display); font-weight:600; font-size:16px; line-height:26px; color:var(--text-900)}
+.exp-card .img{position:absolute; right:0; top:0; bottom:0; width:210px}
+.exp-card .img img{width:100%; height:100%; object-fit:cover; opacity:.6}
+.exp-card .img::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg, var(--surface-200) 0%, rgba(26,30,38,0) 65%)}
+
+/* Zonas y servicios */
+.services{padding:0 16px}
+.services .sec-title{margin:0 0 8px; padding-top:32px; font-family:var(--display); font-weight:600; font-size:16px; color:var(--text-950)}
+.svc{display:flex; align-items:center; gap:14px; height:44px; color:var(--text-900)}
+.svc svg{width:20px; height:20px; color:var(--text-800); flex-shrink:0}
+.svc span{font-family:var(--body); font-weight:400; font-size:15px; line-height:24px}
+
+/* Barra de compra fija (PurchaseActionsheet) */
+.buy-bar{
+  position:absolute; left:0; right:0; bottom:0; z-index:200;
+  display:flex; flex-direction:column; align-items:stretch; gap:12px;
+  padding:8px 18px 26px;
+  background:var(--surface-200); border-radius:24px 24px 0 0;
+  box-shadow:0 2px 70px rgba(0,46,247,.7);
+}
+.buy-bar .handle{width:44px; height:5px; border-radius:100px; background:var(--border-100); align-self:center}
+.buy-row{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.buy-left{display:flex; flex-direction:column; align-items:flex-start; gap:4px}
+.buy-left .lab{font-family:var(--body); font-weight:500; font-size:13px; color:var(--secondary-600)}
+.buy-left .tag{display:inline-flex; align-items:center; padding:2px 6px; border-radius:6px; background:var(--success-700); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:10px; line-height:1}
+.buy-left .price{font-family:var(--display); font-weight:700; font-size:22px; line-height:28px; color:var(--text-950)}
+.buy-btn{height:52px; padding:0 28px; border:0; cursor:pointer; background:var(--secondary-300); border-radius:14px; color:#fff; font-family:var(--display); font-weight:600; font-size:16px; transition:filter .15s ease, transform .12s ease}
+.buy-btn:hover{filter:brightness(1.08)} .buy-btn:active{transform:scale(.98)}
+
+/* Toast */
+.toast{position:absolute; top:56px; left:50%; transform:translateX(-50%) translateY(-16px); z-index:300; max-width:calc(100% - 32px); padding:12px 16px; border-radius:12px; background:rgba(33,38,49,.97); border:1px solid var(--border-50); color:var(--text-950); font-family:var(--display); font-weight:500; font-size:13px; box-shadow:0 2px 10px rgba(38,38,38,.5); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<a class="back-link" href="issues.html">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+  Issues
+</a>
+
+<div class="device">
+  <div class="screen">
+    <div class="notch"></div>
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="status-bar">
+        <div class="left"><span class="time">9:00</span></div>
+        <div class="right">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="white"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="6" width="3" height="6" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><path d="M8.5 12L11 9.5C9.6 8.1 7.4 8.1 6 9.5L8.5 12Z"/><path d="M3.5 7C6.3 4.2 10.7 4.2 13.5 7L15.5 5C11.5 1 5.5 1 1.5 5L3.5 7Z"/><path d="M0.5 4C5 -0.5 12 -0.5 16.5 4L14.5 6C11.4 2.9 5.6 2.9 2.5 6L0.5 4Z" opacity=".6"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="white" opacity=".55"/><rect x="2" y="2" width="19" height="9" rx="1.5" fill="white"/><rect x="23.5" y="4" width="2" height="5" rx=".5" fill="white" opacity=".55"/></svg>
+        </div>
+      </div>
+      <div class="hdr">
+        <button class="back" type="button" onclick="goBack()" aria-label="Volver">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h1>NEO Florián Roa</h1>
+      </div>
+    </div>
+
+    <!-- Scroll -->
+    <div class="scroll">
+
+      <!-- Hero -->
+      <div class="hero"><img src="assets/figma/sede-hero.png" alt="NEO Florián Roa" /></div>
+
+      <!-- Info -->
+      <div class="info">
+        <div class="info-top">
+          <span class="badge-occ">
+            <span class="t">Ocupación baja:</span>
+            <span class="avatars">
+              <span class="p" style="color:#BDE986"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+              <span class="p" style="color:#BDE986;opacity:.35"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+              <span class="p" style="color:#BDE986;opacity:.35"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+              <span class="p" style="color:#BDE986;opacity:.35"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+            </span>
+          </span>
+          <span class="more-info" onclick="flash('Más info')">Más info
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+          </span>
+        </div>
+
+        <h2 class="sede-title">NEO Florián Roa</h2>
+
+        <div class="hours">
+          <div class="row">
+            <span class="day"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Lunes a Jueves:</span>
+            <span class="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 6:00 - 23:00 hrs</span>
+          </div>
+          <div class="row">
+            <span class="day indent">Viernes:</span>
+            <span class="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 6:00 - 22:00 hrs</span>
+          </div>
+          <div class="row">
+            <span class="day indent">Sábado y Domingo:</span>
+            <span class="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 9:00 - 14:00 hrs</span>
+          </div>
+        </div>
+
+        <div class="howto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <span>Cómo llegar -</span>
+          <a href="#" onclick="flash('Abrir mapa'); return false;">Avenida Raúl Labbé, 12613</a>
+          <svg class="pin2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 7.5H22l-6 4.5 2.3 7.5L12 17l-6.3 4.5L8 14l-6-4.5h7.5z"/></svg>
+        </div>
+      </div>
+
+      <!-- Precios -->
+      <div class="prices">
+        <div class="price-head">
+          <h2>Pase para ingresar</h2>
+          <div class="pill-row">
+            <span class="pill now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Precio Ahora</span>
+            <span class="pill low">Más bajo</span>
+          </div>
+          <div class="big-price">$1.000</div>
+        </div>
+        <div class="example">
+          <span class="cap">Precios dinámicos por ocupación estimada</span>
+          <div class="price-rows">
+            <div class="pr">
+              <div class="pr-left">
+                <span class="pr-hour">9:00 AM</span>
+                <span class="badge-occ2 baja"><span class="t">Baja:</span>
+                  <span class="avatars">
+                    <span class="p" style="color:#BDE986"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                    <span class="p" style="color:#BDE986;opacity:.35"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                    <span class="p" style="color:#BDE986;opacity:.35"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                    <span class="p" style="color:#BDE986;opacity:.35"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                  </span>
+                </span>
+              </div>
+              <div class="pr-right">
+                <span class="tag-low">Precio más bajo</span>
+                <span class="pr-price"><span class="approx">~</span>$1.000</span>
+              </div>
+            </div>
+            <div class="pr">
+              <div class="pr-left">
+                <span class="pr-hour">6:00 PM</span>
+                <span class="badge-occ2 alta"><span class="t">Alta:</span>
+                  <span class="avatars">
+                    <span class="p" style="color:#F4785B"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                    <span class="p" style="color:#F4785B"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                    <span class="p" style="color:#F4785B"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                    <span class="p" style="color:#F4785B"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+                  </span>
+                </span>
+              </div>
+              <div class="pr-right">
+                <span class="pr-price"><span class="approx">~</span>$5.000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="more-hours" type="button" onclick="flash('Más horarios')">Más horarios</button>
+      </div>
+
+      <!-- Explorar esta sede -->
+      <div class="section">
+        <h2 class="sec-title">Explorar esta sede</h2>
+        <div class="exp">
+          <div class="exp-card" onclick="flash('Entrenar')">
+            <span class="lbl">Entrenar</span>
+            <span class="img"><img src="assets/figma/sede-entrenar.jpg" alt="" /></span>
+          </div>
+          <div class="exp-card" onclick="flash('Recuperar')">
+            <span class="lbl">Recuperar</span>
+            <span class="img"><img src="assets/figma/sede-recuperar.jpg" alt="" /></span>
+          </div>
+          <div class="exp-card" onclick="flash('Espacios')">
+            <span class="lbl">Espacios</span>
+            <span class="img"><img src="assets/figma/sede-espacios.jpg" alt="" /></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zonas y Servicios -->
+      <div class="services">
+        <h2 class="sec-title">Zonas y Servicios de la sede</h2>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M2 9a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></svg><span>Wifi Gratuito</span></div>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Lockers</span></div>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14M6 17l1.5-5A2 2 0 0 1 9.4 10.6h5.2a2 2 0 0 1 1.9 1.4L18 17"/><circle cx="7.5" cy="17.5" r="1.6"/><circle cx="16.5" cy="17.5" r="1.6"/></svg><span>Estacionamiento</span></div>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="4" r="1.6"/><path d="M9 8v5h5l3 6"/><path d="M9 13a6 6 0 1 0 5 3"/></svg><span>Rampa Accesible</span></div>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 8h12v5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><path d="M18 9h2a2 2 0 0 1 0 4h-2"/><path d="M8 3v2M11 3v2M14 3v2"/></svg><span>Cafetería</span></div>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M10 8l-1.5 2h3z" fill="currentColor"/><path d="M14 16l1.5-2h-3z" fill="currentColor"/></svg><span>Ascensor</span></div>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 13h16"/><path d="M6 13V7a3 3 0 0 1 5.8-1"/><path d="M11 6.5l2-1.2"/><path d="M7 17v2M11 17v2M15 17v2M19 17v1.5"/></svg><span>Vestuarios con duchas</span></div>
+        <div class="svc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M12 6l3-3M12 6L9 3M12 18l3 3M12 18l-3 3"/><path d="M20.5 7l-17 10M20.5 7l-4.1.4M20.5 7l-1.5-3.8M3.5 17l4.1-.4M3.5 17l1.5 3.8"/></svg><span>Aire acondicionado y calefacción</span></div>
+      </div>
+
+    </div>
+
+    <!-- Barra de compra fija -->
+    <div class="buy-bar">
+      <div class="handle"></div>
+      <div class="buy-row">
+        <div class="buy-left">
+          <span class="lab">Precio ahora:</span>
+          <span class="tag">Precio más bajo</span>
+          <span class="price">$1.000</span>
+        </div>
+        <button class="buy-btn" type="button" onclick="flash('Comprar pase')">Comprar pase</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+function goBack(){ if(document.referrer && history.length>1){ history.back(); } else { location.href='issues.html'; } }
+let toastId=null;
+function flash(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastId); toastId=setTimeout(()=>t.classList.remove('show'),1600);
+}
+</script>
+</body>
+</html>
