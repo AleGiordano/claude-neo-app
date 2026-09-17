@@ -25,6 +25,7 @@
   --body:'Wix Madefor Display', ui-sans-serif, system-ui;
 }
 *,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;padding:0;background:#06070a;color:var(--text-950);font-family:var(--body);-webkit-font-smoothing:antialiased}
 body{
   min-height:100vh; display:flex; align-items:center; justify-content:center; padding:48px 16px;
@@ -159,6 +160,8 @@ body{
 .buy-left .price{font-family:var(--display); font-weight:700; font-size:22px; line-height:28px; color:var(--text-950)}
 .buy-btn{height:52px; padding:0 28px; border:0; cursor:pointer; background:var(--secondary-300); border-radius:14px; color:#fff; font-family:var(--display); font-weight:600; font-size:16px; transition:filter .15s ease, transform .12s ease}
 .buy-btn:hover{filter:brightness(1.08)} .buy-btn:active{transform:scale(.98)}
+.buy-btn.alt{background:var(--surface-300); color:var(--text-900)}
+.buy-chip{align-self:center; padding:8px 14px; border-radius:999px; background:var(--surface-300); color:var(--surface-800); font-family:var(--body); font-weight:500; font-size:13px}
 
 /* Cierre programado (header) */
 .closure-box{
@@ -436,13 +439,14 @@ body{
     <!-- Barra de compra fija -->
     <div class="buy-bar">
       <div class="handle"></div>
+      <div class="buy-chip" id="buyChip" hidden>No se pueden comprar más pases por hoy</div>
       <div class="buy-row">
         <div class="buy-left">
-          <span class="lab">Precio ahora:</span>
-          <span class="tag">Precio más bajo</span>
-          <span class="price">$1.000</span>
+          <span class="lab" id="buyLab">Precio ahora:</span>
+          <span class="tag" id="buyTag">Precio más bajo</span>
+          <span class="price" id="buyPrice">$1.000</span>
         </div>
-        <button class="buy-btn" type="button" onclick="flash('Comprar pase')">Comprar pase</button>
+        <button class="buy-btn" id="buyBtn" type="button" onclick="onBuy()">Comprar pase</button>
       </div>
     </div>
 
@@ -483,28 +487,60 @@ function headerWording(c){
 }
 function priceNoticeWording(c){
   if(c.momento==='manana') return null;   // el anuncio de mañana no afecta los precios de hoy
-  if(c.momento==='porcerrar') return 'La sede está por cerrar. Estos son los precios estimados para la próxima apertura.';
-  return 'Sede cerrada: Solo puedes visualizar los precios según la ocupación estimada de la próxima apertura de la sede.';
+  // "cerrada hoy" y "por cerrar" muestran los precios de la próxima apertura
+  return 'Te mostramos los precios por ocupación estimada de la próxima apertura de la sede.';
+}
+
+function setBuyBar(cannot){
+  const chip=document.getElementById('buyChip'), lab=document.getElementById('buyLab'),
+        tag=document.getElementById('buyTag'), price=document.getElementById('buyPrice'),
+        btn=document.getElementById('buyBtn');
+  if(cannot){
+    chip.hidden=false;
+    lab.textContent='Mañana 7:00 AM';
+    tag.hidden=true;
+    price.textContent='~$1.000';
+    btn.textContent='Más horarios'; btn.classList.add('alt'); btn.dataset.action='horarios';
+  } else {
+    chip.hidden=true;
+    lab.textContent='Precio ahora:';
+    tag.hidden=false;
+    price.textContent='$1.000';
+    btn.textContent='Comprar pase'; btn.classList.remove('alt'); btn.dataset.action='comprar';
+  }
 }
 
 function renderClosure(){
   const box=document.getElementById('closureBox');
   const notice=document.getElementById('priceNotice');
-  if(!CLOSURE.active){
-    box.hidden=true; notice.hidden=true;
-  } else {
+  // "no se puede comprar": sede cerrada hoy o en el último horario (por cerrar)
+  const cannotBuy = CLOSURE.active && (CLOSURE.momento==='hoy' || CLOSURE.momento==='porcerrar');
+
+  // Header "Cierre programado": solo cierre programado (mañana/hoy). El fin de día (por cerrar) NO lo usa.
+  if(CLOSURE.active && CLOSURE.momento!=='porcerrar'){
     document.getElementById('closureDesc').textContent = headerWording(CLOSURE);
     box.hidden=false;
-    const pn=priceNoticeWording(CLOSURE);
-    if(pn){ document.getElementById('priceNoticeText').textContent=pn; notice.hidden=false; }
-    else notice.hidden=true;
-  }
-  const porcerrar = CLOSURE.momento==='porcerrar';
-  document.querySelectorAll('.cd-when').forEach(el=>el.classList.toggle('disabled', CLOSURE.active && porcerrar));
+  } else box.hidden=true;
+
+  // Cartel sobre precios dinámicos
+  const pn = CLOSURE.active ? priceNoticeWording(CLOSURE) : null;
+  if(pn){ document.getElementById('priceNoticeText').textContent=pn; notice.hidden=false; } else notice.hidden=true;
+
+  // Barra de compra (fin de día / cerrada => no se puede comprar)
+  setBuyBar(cannotBuy);
+
+  // "por cerrar" es fin de día: días/horario no aplican
+  document.querySelectorAll('.cd-when').forEach(el=>el.classList.toggle('disabled', CLOSURE.active && CLOSURE.momento==='porcerrar'));
+
   const url=new URL(location);
-  if(CLOSURE.active) url.searchParams.set('cierre', porcerrar ? 'porcerrar' : [CLOSURE.momento,CLOSURE.dias,CLOSURE.horario].join('-'));
+  if(CLOSURE.active) url.searchParams.set('cierre', CLOSURE.momento==='porcerrar' ? 'porcerrar' : [CLOSURE.momento,CLOSURE.dias,CLOSURE.horario].join('-'));
   else url.searchParams.delete('cierre');
   history.replaceState(null,'',url);
+}
+
+function onBuy(){
+  const btn=document.getElementById('buyBtn');
+  flash(btn.dataset.action==='horarios' ? 'Más horarios' : 'Comprar pase');
 }
 
 function onToggle(){
