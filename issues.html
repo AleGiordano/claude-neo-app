@@ -42,8 +42,17 @@ body{
 h1.title{margin:0; font-family:var(--display); font-weight:700; font-size:40px; line-height:1.1; color:var(--text-950); letter-spacing:-.01em}
 p.sub{margin:12px 0 0; font-size:16px; line-height:26px; color:var(--surface-800); max-width:640px}
 
+/* Section label */
+.sec-label{
+  display:flex; align-items:center; gap:14px; margin:40px 0 18px;
+  font-family:var(--display); font-weight:600; font-size:13px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--surface-800);
+}
+.sec-label:first-of-type{margin-top:44px}
+.sec-label::after{content:""; flex:1; height:1px; background:var(--border-50)}
+
 /* Grid */
-.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:20px; margin-top:44px}
+.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:20px; margin-top:0}
 
 /* Card (toda clickeable) */
 .card{
@@ -117,12 +126,13 @@ a.card:hover .go{opacity:1; transform:translateX(0)}
   <h1 class="title">NEO App</h1>
   <p class="sub">Issues desarrolladas o en desarrollo. Maqueta para visualizar prototipos.</p>
 
+  <!-- ===== En desarrollo ===== -->
+  <div class="sec-label">En desarrollo</div>
   <div class="grid">
 
     <!-- Pases -->
     <a class="card" href="pase.html">
       <div class="thumb">
-        <span class="status dev"><span class="led"></span> En desarrollo</span>
         <div class="mock">
           <div class="m-pill"></div>
           <div class="m-qr"></div>
@@ -142,7 +152,6 @@ a.card:hover .go{opacity:1; transform:translateX(0)}
     <a class="card" href="sede.html">
       <div class="thumb photo">
         <img src="assets/figma/sede-hero.png" alt="" />
-        <span class="status dev"><span class="led"></span> En desarrollo</span>
       </div>
       <div class="body">
         <h2>Detalle de sede</h2>
@@ -154,29 +163,15 @@ a.card:hover .go{opacity:1; transform:translateX(0)}
       </div>
     </a>
 
-    <!-- Home -->
-    <div class="card disabled">
-      <div class="thumb dim">
-        <span class="status soon"><span class="led"></span> Próximamente</span>
-        <div class="mock">
-          <div class="m-hero"></div>
-          <div class="m-line"></div>
-          <div class="m-line s"></div>
-        </div>
-      </div>
-      <div class="body">
-        <h2>Home</h2>
-        <p class="desc">Pantalla principal de la app. Aún sin maqueta cargada.</p>
-        <div class="foot-row">
-          <span class="updated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Sin publicar</span>
-        </div>
-      </div>
-    </div>
+  </div>
+
+  <!-- ===== Desactualizadas ===== -->
+  <div class="sec-label">Desactualizadas</div>
+  <div class="grid">
 
     <!-- Explorar -->
     <a class="card" href="index.html">
       <div class="thumb plain">
-        <span class="status stale"><span class="led"></span> Desactualizado</span>
         <div class="mock">
           <div class="m-line xs" style="height:9px"></div>
           <div class="m-line"></div>
@@ -194,6 +189,30 @@ a.card:hover .go{opacity:1; transform:translateX(0)}
         </div>
       </div>
     </a>
+
+  </div>
+
+  <!-- ===== Próximamente ===== -->
+  <div class="sec-label">Próximamente</div>
+  <div class="grid">
+
+    <!-- Home -->
+    <div class="card disabled">
+      <div class="thumb dim">
+        <div class="mock">
+          <div class="m-hero"></div>
+          <div class="m-line"></div>
+          <div class="m-line s"></div>
+        </div>
+      </div>
+      <div class="body">
+        <h2>Home</h2>
+        <p class="desc">Pantalla principal de la app. Aún sin maqueta cargada.</p>
+        <div class="foot-row">
+          <span class="updated"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Sin publicar</span>
+        </div>
+      </div>
+    </div>
 
   </div>
 
