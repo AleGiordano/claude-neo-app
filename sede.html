@@ -206,6 +206,7 @@ body{
 .seg-btn{border:0; cursor:pointer; border-radius:8px; padding:7px 10px; background:var(--surface-300); color:var(--text-800); font-family:var(--display); font-weight:500; font-size:12px; transition:background .15s ease, color .15s ease}
 .seg-btn:hover{background:var(--surface-400); color:var(--text-950)}
 .seg-btn.active{background:var(--secondary-300); color:#fff}
+.seg-btn:disabled{opacity:.3; cursor:not-allowed; pointer-events:none}
 .cd-note{margin:2px 0 0; font-family:var(--body); font-weight:400; font-size:11px; line-height:16px; color:var(--surface-800)}
 .cd-note b{color:var(--text-800); font-weight:600}
 .switch{position:relative; display:inline-block; width:40px; height:22px; cursor:pointer; flex-shrink:0}
@@ -503,9 +504,14 @@ function headerWording(c){
   if(c.momento==='porcerrar')
     return 'La sede está por cerrar. Ya no se pueden comprar pases por hoy.';
   const verbo = c.momento==='hoy' ? 'Cerrada' : 'Cierra';
-  const base  = `${verbo} ${diasTxt(c.momento, c.dias)}`;
-  const hor   = horarioTxt(c.horario);
-  return hor ? `${base} ${hor}` : `${base}. Cerrado todo el día`;
+  // Rango de días: SOLO un rango horario. La 1ª hora aplica al primer día y la 2ª al último.
+  if(c.dias==='rango'){
+    if(c.horario==='todo') return `${verbo} del jueves 19 al domingo 22. Cerrado todo el día`;
+    return `${verbo} desde el jueves 19 a las 14:00 hasta el domingo 22 a las 18:00 hs`;
+  }
+  // Día único: puede tener todo el día / un rango / doble rango
+  const hor = horarioTxt(c.horario);
+  return hor ? `${verbo} ${diasTxt(c.momento, c.dias)} ${hor}` : `${verbo} ${diasTxt(c.momento, c.dias)}. Cerrado todo el día`;
 }
 const PRICE_DESC = 'Te mostramos los precios por ocupación estimada de la próxima apertura de la sede.';
 const WARN_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
@@ -529,7 +535,19 @@ function setBuyBar(cannot, chipHtml){
   }
 }
 
+function syncHorario(){
+  // Doble rango solo aplica a cierres de 1 solo día. En rango de días se deshabilita.
+  const dobleBtn = document.querySelector('.seg[data-key="horario"] .seg-btn[data-val="doble"]');
+  const esRango = CLOSURE.dias==='rango';
+  dobleBtn.disabled = esRango;
+  if(esRango && CLOSURE.horario==='doble'){
+    CLOSURE.horario='uno';
+    document.querySelectorAll('.seg[data-key="horario"] .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val==='uno'));
+  }
+}
+
 function renderClosure(){
+  syncHorario();
   const box=document.getElementById('closureBox');
   const notice=document.getElementById('priceNotice');
   const hero=document.querySelector('.hero');
