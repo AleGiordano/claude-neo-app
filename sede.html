@@ -198,7 +198,13 @@ body{
 .cd-head{display:flex; align-items:center; justify-content:space-between; gap:12px}
 .cd-title{font-family:var(--display); font-weight:600; font-size:14px; color:var(--text-950)}
 .cd-body{margin-top:14px; display:flex; flex-direction:column; gap:14px; opacity:.4; pointer-events:none; transition:opacity .2s ease}
-.cierre-dock.on .cd-body{opacity:1; pointer-events:auto}
+.cd-section.on .cd-body{opacity:1; pointer-events:auto}
+.dock-title-main{margin:0 0 12px; font-family:var(--display); font-weight:700; font-size:14px; color:var(--text-950)}
+.cd-section + .cd-section{margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08)}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip-btn{border:0; cursor:pointer; border-radius:8px; padding:7px 10px; background:var(--surface-300); color:var(--text-800); font-family:var(--display); font-weight:500; font-size:12px; transition:background .15s ease, color .15s ease}
+.chip-btn:hover{background:var(--surface-400); color:var(--text-950)}
+.chip-btn.active{background:var(--secondary-300); color:#fff}
 .cd-when.disabled{opacity:.35; pointer-events:none}
 .cd-group{display:flex; flex-direction:column; gap:7px}
 .cd-label{font-family:var(--display); font-weight:600; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--secondary-600)}
@@ -233,6 +239,26 @@ body{
 .section{padding-bottom:20px}
 .services{padding-bottom:28px}
 
+/* ===== Marcha blanca ===== */
+.gratis-badge{display:inline-flex; align-items:center; padding:2px 8px; border-radius:7px; background:var(--success-500); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:11px; line-height:1}
+.mb-hero-badge{position:absolute; left:16px; bottom:12px; z-index:3; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:rgba(15,18,23,.72); backdrop-filter:blur(6px)}
+.mb-hero-badge .mb-dias{font-family:var(--display); font-weight:700; font-size:14px; color:#fff}
+
+.mb-promo{width:100%; border:1px solid var(--secondary-300); border-radius:12px; overflow:hidden;
+  background:linear-gradient(174deg, #002AE1 15%, var(--surface-0) 24%);}
+.mbp-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 10px 16px}
+.mbp-title{display:inline-flex; align-items:center; gap:8px; font-family:var(--body); font-weight:700; font-size:16px; color:var(--text-950)}
+.mbp-dot{width:10px; height:10px; border-radius:999px; background:var(--secondary-400); animation:mbpulse 1.6s ease-in-out infinite}
+@keyframes mbpulse{0%,100%{box-shadow:0 0 0 3px rgba(51,88,249,.35)}50%{box-shadow:0 0 0 8px rgba(51,88,249,0)}}
+.mbp-right{display:inline-flex; align-items:center; gap:10px}
+.mbp-dias{font-family:var(--display); font-weight:700; font-size:14px; color:#fff; letter-spacing:.2px; white-space:nowrap}
+.mbp-box{margin:0 1px 1px; border:1px solid var(--secondary-300); border-radius:12px; padding:24px; display:flex; flex-direction:column; align-items:center; gap:16px;
+  background:linear-gradient(162deg, #0021AF 22%, var(--surface-0) 46%)}
+.mbp-text{font-family:var(--body); font-weight:700; font-size:14px; line-height:22px; color:var(--text-950); text-align:center}
+.mbp-price{display:inline-flex; align-items:baseline; gap:8px; font-family:var(--display); font-weight:600; font-size:30px; line-height:1; color:var(--text-950)}
+.mbp-strike{font-family:var(--body); font-weight:400; font-size:14px; color:#9A9DA3; text-decoration:line-through}
+.price-gratis{display:inline-block; vertical-align:middle; margin-left:8px; padding:2px 8px; border-radius:6px; background:var(--success-500); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:11px}
+
 /* Toast */
 .toast{position:absolute; top:56px; left:50%; transform:translateX(-50%) translateY(-16px); z-index:300; max-width:calc(100% - 32px); padding:12px 16px; border-radius:12px; background:rgba(33,38,49,.97); border:1px solid var(--border-50); color:var(--text-950); font-family:var(--display); font-weight:500; font-size:13px; box-shadow:0 2px 10px rgba(38,38,38,.5); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
@@ -245,37 +271,68 @@ body{
   Issues
 </a>
 
-<!-- Caja de control de cierres -->
+<!-- Caja de control de estados de la sede -->
 <div class="cierre-dock" id="cierreDock">
-  <div class="cd-head">
-    <span class="cd-title">Cierre de sede</span>
-    <label class="switch"><input type="checkbox" id="cierreToggle" onchange="onToggle()"><span class="track"></span></label>
+  <p class="dock-title-main">Estado de la sede</p>
+
+  <!-- Cierre de sede -->
+  <div class="cd-section" id="cierreSection">
+    <div class="cd-head">
+      <span class="cd-title">Cierre de sede</span>
+      <label class="switch"><input type="checkbox" id="cierreToggle" onchange="onToggle()"><span class="track"></span></label>
+    </div>
+    <div class="cd-body" id="cierreBody">
+      <div class="cd-group">
+        <span class="cd-label">Momento</span>
+        <div class="seg" data-key="momento">
+          <button class="seg-btn active" data-val="manana">Cierra mañana</button>
+          <button class="seg-btn" data-val="hoy">Cerrada hoy</button>
+          <button class="seg-btn" data-val="porcerrar">Por cerrar</button>
+        </div>
+      </div>
+      <div class="cd-group cd-when">
+        <span class="cd-label">Días</span>
+        <div class="seg" data-key="dias">
+          <button class="seg-btn active" data-val="unico">Día único</button>
+          <button class="seg-btn" data-val="rango">Rango de días</button>
+        </div>
+      </div>
+      <div class="cd-group cd-when">
+        <span class="cd-label">Horario</span>
+        <div class="seg" data-key="horario">
+          <button class="seg-btn active" data-val="todo">Todo el día</button>
+          <button class="seg-btn" data-val="uno">Un rango</button>
+          <button class="seg-btn" data-val="doble">Doble rango</button>
+        </div>
+      </div>
+      <p class="cd-note">El cierre se refleja en el <b>header</b> y sobre los <b>precios dinámicos</b>.</p>
+    </div>
   </div>
-  <div class="cd-body" id="cierreBody">
-    <div class="cd-group">
-      <span class="cd-label">Momento</span>
-      <div class="seg" data-key="momento">
-        <button class="seg-btn active" data-val="manana">Cierra mañana</button>
-        <button class="seg-btn" data-val="hoy">Cerrada hoy</button>
-        <button class="seg-btn" data-val="porcerrar">Por cerrar</button>
-      </div>
+
+  <!-- Marcha blanca -->
+  <div class="cd-section" id="mbSection">
+    <div class="cd-head">
+      <span class="cd-title">Marcha blanca</span>
+      <label class="switch"><input type="checkbox" id="mbToggle" onchange="onToggleMB()"><span class="track"></span></label>
     </div>
-    <div class="cd-group cd-when">
-      <span class="cd-label">Días</span>
-      <div class="seg" data-key="dias">
-        <button class="seg-btn active" data-val="unico">Día único</button>
-        <button class="seg-btn" data-val="rango">Rango de días</button>
+    <div class="cd-body">
+      <div class="cd-group">
+        <span class="cd-label">Vigencia</span>
+        <div class="seg" data-key="vigencia" data-mb="1">
+          <button class="seg-btn active" data-val="dias">Con fechas (7 días)</button>
+          <button class="seg-btn" data-val="sinfin">Sin fin / sin fechas</button>
+        </div>
       </div>
-    </div>
-    <div class="cd-group cd-when">
-      <span class="cd-label">Horario</span>
-      <div class="seg" data-key="horario">
-        <button class="seg-btn active" data-val="todo">Todo el día</button>
-        <button class="seg-btn" data-val="uno">Un rango</button>
-        <button class="seg-btn" data-val="doble">Doble rango</button>
+      <div class="cd-group">
+        <span class="cd-label">Salas que tiene</span>
+        <div class="chips" id="mbSalas">
+          <button class="chip-btn" data-sala="entrenar">Entrenar</button>
+          <button class="chip-btn" data-sala="recuperar">Recuperar</button>
+          <button class="chip-btn" data-sala="espacios">Espacios</button>
+        </div>
       </div>
+      <p class="cd-note">Acceso <b>gratis</b> por tiempo limitado. Las cards de salas aparecen solo si la sede las tiene.</p>
     </div>
-    <p class="cd-note">El cierre se refleja en el <b>header</b> y sobre los <b>precios dinámicos</b>.</p>
   </div>
 </div>
 
@@ -305,7 +362,13 @@ body{
     <div class="scroll">
 
       <!-- Hero -->
-      <div class="hero"><img src="assets/figma/sede-hero.png" alt="NEO Florián Roa" /></div>
+      <div class="hero">
+        <img src="assets/figma/sede-hero.png" alt="NEO Florián Roa" />
+        <div class="mb-hero-badge" id="mbHeroBadge" hidden>
+          <span class="mb-dias" id="mbHeroDias">7 días</span>
+          <span class="gratis-badge">GRATIS</span>
+        </div>
+      </div>
 
       <!-- Info -->
       <div class="info">
@@ -364,7 +427,20 @@ body{
 
       <!-- Precios -->
       <div class="prices">
-        <div class="price-head">
+
+        <!-- Marcha blanca: caja promo (reemplaza precios dinámicos) -->
+        <div class="mb-promo" id="mbPromo" hidden>
+          <div class="mbp-head">
+            <span class="mbp-title"><span class="mbp-dot"></span> Pase para ingresar</span>
+            <span class="mbp-right"><span class="mbp-dias" id="mbPromoDias">7 días</span><span class="gratis-badge">GRATIS</span></span>
+          </div>
+          <div class="mbp-box">
+            <span class="mbp-text" id="mbPromoText">Libre acceso al gimnasio por tiempo limitado</span>
+            <span class="mbp-price">$0 <span class="mbp-strike">$3.000</span></span>
+          </div>
+        </div>
+
+        <div class="price-head" id="priceHead">
           <h2>Pase para ingresar</h2>
           <div class="pill-row">
             <span class="pill now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Precio Ahora</span>
@@ -384,7 +460,7 @@ body{
           </div>
         </div>
 
-        <div class="example">
+        <div class="example" id="priceExample">
           <span class="cap">Precios dinámicos por ocupación estimada</span>
           <div class="price-rows">
             <div class="pr">
@@ -426,18 +502,18 @@ body{
       </div>
 
       <!-- Explorar esta sede -->
-      <div class="section">
+      <div class="section" id="expSection">
         <h2 class="sec-title">Explorar esta sede</h2>
         <div class="exp">
-          <div class="exp-card" onclick="flash('Entrenar')">
+          <div class="exp-card" data-sala="entrenar" onclick="flash('Entrenar')">
             <span class="lbl">Entrenar</span>
             <span class="img"><img src="assets/figma/sede-entrenar.jpg" alt="" /></span>
           </div>
-          <div class="exp-card" onclick="flash('Recuperar')">
+          <div class="exp-card" data-sala="recuperar" onclick="flash('Recuperar')">
             <span class="lbl">Recuperar</span>
             <span class="img"><img src="assets/figma/sede-recuperar.jpg" alt="" /></span>
           </div>
-          <div class="exp-card" onclick="flash('Espacios')">
+          <div class="exp-card" data-sala="espacios" onclick="flash('Espacios')">
             <span class="lbl">Espacios</span>
             <span class="img"><img src="assets/figma/sede-espacios.jpg" alt="" /></span>
           </div>
@@ -529,7 +605,7 @@ function setBuyBar(cannot, chipHtml){
   } else {
     chip.hidden=true;
     lab.textContent='Precio ahora:';
-    tag.hidden=false;
+    tag.hidden=false; tag.textContent='Precio más bajo';
     price.textContent='$1.000';
     btn.textContent='Comprar pase'; btn.classList.remove('alt'); btn.dataset.action='comprar';
   }
@@ -584,6 +660,72 @@ function renderClosure(){
   if(CLOSURE.active) url.searchParams.set('cierre', porcerrar ? 'porcerrar' : [CLOSURE.momento,CLOSURE.dias,CLOSURE.horario].join('-'));
   else url.searchParams.delete('cierre');
   history.replaceState(null,'',url);
+  renderMB();
+}
+
+/* ===================== MARCHA BLANCA =====================
+   Acceso gratis por tiempo limitado. Vigencia con fechas ("7 días") o sin fin ("Marcha blanca").
+   Las cards de salas (Entrenar/Recuperar/Espacios) aparecen solo si la sede las tiene. */
+const MB = { active:false, vigencia:'dias', salas:{entrenar:false, recuperar:false, espacios:false} };
+
+function setBuyBarMB(){
+  const chip=document.getElementById('buyChip'), lab=document.getElementById('buyLab'),
+        tag=document.getElementById('buyTag'), price=document.getElementById('buyPrice'),
+        btn=document.getElementById('buyBtn');
+  chip.hidden=true;
+  lab.textContent='Precio:';
+  tag.hidden=true;
+  price.innerHTML='$0 <span class="price-gratis">GRATIS</span>';
+  btn.textContent='Comprar pase'; btn.classList.remove('alt'); btn.dataset.action='comprar';
+}
+
+function renderMB(){
+  const on=MB.active;
+  const dias = MB.vigencia==='sinfin' ? 'Marcha blanca' : '7 días';
+  const anySala = MB.salas.entrenar || MB.salas.recuperar || MB.salas.espacios;
+
+  // Hero badge
+  const hb=document.getElementById('mbHeroBadge');
+  hb.hidden=!on;
+  if(on) document.getElementById('mbHeroDias').textContent=dias;
+
+  // Precios: caja promo reemplaza lo normal
+  document.getElementById('mbPromo').hidden=!on;
+  document.getElementById('priceHead').hidden=on;
+  document.getElementById('priceExample').hidden=on;
+  if(on){
+    document.getElementById('mbPromoDias').textContent=dias;
+    document.getElementById('mbPromoText').textContent = anySala
+      ? 'Vas a tener libre acceso a nuestras zonas y salas:'
+      : 'Libre acceso al gimnasio por tiempo limitado';
+    setBuyBarMB();
+  }
+
+  // Experiencias: en MB solo las salas que tiene; fuera de MB, todas
+  ['entrenar','recuperar','espacios'].forEach(s=>{
+    const card=document.querySelector(`.exp-card[data-sala="${s}"]`);
+    if(card) card.hidden = on ? !MB.salas[s] : false;
+  });
+  document.getElementById('expSection').hidden = on && !anySala;
+
+  // URL
+  const url=new URL(location);
+  if(on){
+    const salas=['entrenar','recuperar','espacios'].filter(s=>MB.salas[s]);
+    url.searchParams.set('mb', [MB.vigencia].concat(salas).join('-'));
+  } else url.searchParams.delete('mb');
+  history.replaceState(null,'',url);
+}
+
+function onToggleMB(){
+  MB.active=document.getElementById('mbToggle').checked;
+  if(MB.active && CLOSURE.active){ // mutuamente excluyentes
+    CLOSURE.active=false;
+    document.getElementById('cierreToggle').checked=false;
+    document.getElementById('cierreSection').classList.remove('on');
+  }
+  document.getElementById('mbSection').classList.toggle('on', MB.active);
+  renderClosure(); // encadena renderMB
 }
 
 function onBuy(){
@@ -593,11 +735,17 @@ function onBuy(){
 
 function onToggle(){
   CLOSURE.active=document.getElementById('cierreToggle').checked;
-  document.getElementById('cierreDock').classList.toggle('on', CLOSURE.active);
+  if(CLOSURE.active && MB.active){ // mutuamente excluyentes
+    MB.active=false;
+    document.getElementById('mbToggle').checked=false;
+    document.getElementById('mbSection').classList.remove('on');
+  }
+  document.getElementById('cierreSection').classList.toggle('on', CLOSURE.active);
   renderClosure();
 }
 
 document.querySelectorAll('.cierre-dock .seg').forEach(seg=>{
+  if(seg.dataset.mb) return; // los de marcha blanca se manejan aparte
   const key=seg.dataset.key;
   seg.querySelectorAll('.seg-btn').forEach(btn=>{
     btn.onclick=()=>{
@@ -609,18 +757,50 @@ document.querySelectorAll('.cierre-dock .seg').forEach(seg=>{
   });
 });
 
-(function initCierre(){
-  const c=new URLSearchParams(location.search).get('cierre');
+// Marcha blanca: vigencia (segmented)
+document.querySelectorAll('.seg[data-mb] .seg-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    const seg=btn.closest('.seg');
+    seg.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    MB.vigencia=btn.dataset.val;
+    renderClosure();
+  };
+});
+// Marcha blanca: salas (multi-select)
+document.querySelectorAll('#mbSalas .chip-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    const s=btn.dataset.sala;
+    MB.salas[s]=!MB.salas[s];
+    btn.classList.toggle('active', MB.salas[s]);
+    renderClosure();
+  };
+});
+
+(function init(){
+  const q=new URLSearchParams(location.search);
+  const c=q.get('cierre');
   if(c){
     CLOSURE.active=true;
     document.getElementById('cierreToggle').checked=true;
-    document.getElementById('cierreDock').classList.add('on');
+    document.getElementById('cierreSection').classList.add('on');
     if(c==='porcerrar') CLOSURE.momento='porcerrar';
     else{ const [m,d,h]=c.split('-'); if(m)CLOSURE.momento=m; if(d)CLOSURE.dias=d; if(h)CLOSURE.horario=h; }
-    document.querySelectorAll('.cierre-dock .seg').forEach(seg=>{
+    document.querySelectorAll('.cierre-dock .seg:not([data-mb])').forEach(seg=>{
       const val=CLOSURE[seg.dataset.key];
       seg.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===val));
     });
+  }
+  const mb=q.get('mb');
+  if(mb && !c){ // cierre tiene prioridad si vinieran ambos
+    MB.active=true;
+    document.getElementById('mbToggle').checked=true;
+    document.getElementById('mbSection').classList.add('on');
+    const parts=mb.split('-');
+    MB.vigencia = parts[0]==='sinfin' ? 'sinfin' : 'dias';
+    ['entrenar','recuperar','espacios'].forEach(s=>{ MB.salas[s]=parts.includes(s); });
+    document.querySelectorAll('.seg[data-mb] .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===MB.vigencia));
+    document.querySelectorAll('#mbSalas .chip-btn').forEach(b=>b.classList.toggle('active', MB.salas[b.dataset.sala]));
   }
   renderClosure();
 })();
