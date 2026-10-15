@@ -76,7 +76,14 @@ body{
 /* Hero */
 .hero{position:relative; height:226px; overflow:hidden}
 .hero img{width:100%; height:100%; object-fit:cover; display:block}
-.hero::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(17,19,23,.15) 60%, var(--surface-0) 100%)}
+.hero::after{content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background:linear-gradient(180deg, rgba(17,19,23,.15) 60%, var(--surface-0) 100%)}
+/* Carrusel del header */
+.hero-track{display:flex; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+.hero-track::-webkit-scrollbar{display:none}
+.hero-slide{flex:0 0 100%; height:100%; scroll-snap-align:start}
+.hero-dots{position:absolute; left:50%; transform:translateX(-50%); bottom:14px; z-index:3; display:flex; align-items:center; gap:6px}
+.hero-dots .d{width:6px; height:6px; border-radius:999px; background:rgba(255,255,255,.5); cursor:pointer; transition:width .2s ease, background .2s ease}
+.hero-dots .d.active{width:18px; background:#fff}
 
 /* Info */
 .info{padding:16px; display:flex; flex-direction:column; gap:12px; background:var(--surface-0)}
@@ -361,9 +368,16 @@ body{
     <!-- Scroll -->
     <div class="scroll">
 
-      <!-- Hero -->
+      <!-- Hero (carrusel) -->
       <div class="hero">
-        <img src="assets/figma/sede-hero.png" alt="NEO Florián Roa" />
+        <div class="hero-track" id="heroTrack">
+          <div class="hero-slide"><img src="assets/figma/sede-hero.png" alt="NEO Florián Roa" /></div>
+          <div class="hero-slide"><img src="assets/figma/sala-multiclass.png" alt="" /></div>
+          <div class="hero-slide"><img src="assets/figma/sala-cardio.png" alt="" /></div>
+          <div class="hero-slide"><img src="assets/figma/sala-funcional.png" alt="" /></div>
+          <div class="hero-slide"><img src="assets/figma/hidro-masaje.png" alt="" /></div>
+        </div>
+        <div class="hero-dots" id="heroDots"></div>
         <div class="mb-hero-badge" id="mbHeroBadge" hidden>
           <span class="mb-dias" id="mbHeroDias">7 días</span>
           <span class="gratis-badge">GRATIS</span>
@@ -435,7 +449,7 @@ body{
             <span class="mbp-right"><span class="mbp-dias" id="mbPromoDias">7 días</span><span class="gratis-badge">GRATIS</span></span>
           </div>
           <div class="mbp-box">
-            <span class="mbp-text" id="mbPromoText">Libre acceso al gimnasio por tiempo limitado</span>
+            <span class="mbp-text" id="mbPromoText">Todo gratis por tiempo limitado</span>
             <span class="mbp-price">$0 <span class="mbp-strike">$3.000</span></span>
           </div>
         </div>
@@ -555,6 +569,24 @@ body{
 
 <script>
 function goBack(){ if(document.referrer && history.length>1){ history.back(); } else { location.href='issues.html'; } }
+
+/* Carrusel del header */
+(function initHeroCarousel(){
+  const track=document.getElementById('heroTrack');
+  const dots=document.getElementById('heroDots');
+  if(!track||!dots) return;
+  const slides=track.querySelectorAll('.hero-slide');
+  slides.forEach((_,i)=>{
+    const d=document.createElement('span');
+    d.className='d'+(i===0?' active':'');
+    d.onclick=()=>track.scrollTo({left:i*track.clientWidth, behavior:'smooth'});
+    dots.appendChild(d);
+  });
+  track.addEventListener('scroll', ()=>{
+    const idx=Math.round(track.scrollLeft/track.clientWidth);
+    dots.querySelectorAll('.d').forEach((d,i)=>d.classList.toggle('active', i===idx));
+  }, {passive:true});
+})();
 let toastId=null;
 function flash(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
@@ -698,9 +730,7 @@ function renderMB(){
     const pd=document.getElementById('mbPromoDias');
     pd.hidden = MB.vigencia==='sinfin';
     if(MB.vigencia!=='sinfin') pd.textContent='7 días';
-    document.getElementById('mbPromoText').textContent = anySala
-      ? 'Vas a tener libre acceso a nuestras zonas y salas:'
-      : 'Libre acceso al gimnasio por tiempo limitado';
+    document.getElementById('mbPromoText').textContent = 'Todo gratis por tiempo limitado';
     setBuyBarMB();
   }
 
