@@ -213,6 +213,9 @@ body{
 .chip-btn{border:0; cursor:pointer; border-radius:8px; padding:7px 10px; background:var(--surface-300); color:var(--text-800); font-family:var(--display); font-weight:500; font-size:12px; transition:background .15s ease, color .15s ease}
 .chip-btn:hover{background:var(--surface-400); color:var(--text-950)}
 .chip-btn.active{background:var(--secondary-300); color:#fff}
+/* Estados por día en la semana: horario modificado / cerrada (ámbar) */
+.chip-btn.mod{background:rgba(238,187,57,.16); color:var(--warning-400); box-shadow:inset 0 0 0 1px rgba(238,187,57,.55)}
+.chip-btn.cerrada{background:var(--warning-400); color:#2a2206}
 .cd-when.disabled{opacity:.35; pointer-events:none}
 .cd-group{display:flex; flex-direction:column; gap:7px}
 .cd-label{font-family:var(--display); font-weight:600; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--secondary-600)}
@@ -368,7 +371,7 @@ body{
           <button class="chip-btn" data-day="dom">Dom</button>
         </div>
       </div>
-      <p class="cd-note">El estado se muestra en la <b>fila de horarios</b>; los días cerrados aparecen en <b>la semana</b>.</p>
+      <p class="cd-note">Tocá un día para ciclar: <b>horario modificado</b> → <b>cerrada</b> → normal. Se ve en la semana.</p>
     </div>
   </div>
 
@@ -700,7 +703,9 @@ function closeSheet(){
    Combinaciones: momento (manana|hoy|porcerrar) · dias (unico|rango) · horario (todo|uno|doble)
    Wordings CONFIRMADOS del Figma: "Cierra mañana" + día único (todo/uno/doble).
    El resto son DRAFT para afinar. */
-const CLOSURE = { active:false, estado:'abierta', week:{lun:false,mar:false,mie:false,jue:false,vie:false,sab:false,dom:false} };
+const CLOSURE = { active:false, estado:'abierta', week:{lun:'open',mar:'open',mie:'open',jue:'open',vie:'open',sab:'open',dom:'open'} };
+const WEEK_CYCLE = {open:'mod', mod:'cerrada', cerrada:'open'};
+const MOD_TIME = '8:00 - 22:00 hrs';
 const WEEK = [
   {k:'lun', d:'Lunes',     t:'6:00 - 23:00 hrs'},
   {k:'mar', d:'Martes',    t:'6:00 - 23:00 hrs'},
@@ -737,10 +742,13 @@ function setBuyBar(cannot, chipHtml){
 function buildWeek(){
   const wh=document.getElementById('weekHours'); wh.innerHTML='';
   WEEK.forEach(o=>{
-    const closed = CLOSURE.active && CLOSURE.week[o.k];
+    const st = CLOSURE.active ? CLOSURE.week[o.k] : 'open';
     const row=document.createElement('div');
-    row.className='wk-row'+(closed?' changed':'');
-    row.innerHTML = `<span class="wk-day">${o.d}:</span><span class="wk-time">${closed ? BLOCK_SVG+' Cerrada' : CLOCK_SVG+' '+o.t}</span>`;
+    row.className='wk-row'+(st!=='open'?' changed':'');
+    const right = st==='cerrada' ? BLOCK_SVG+' Cerrada'
+                : st==='mod'     ? CLOCK_SVG+' '+MOD_TIME
+                :                  CLOCK_SVG+' '+o.t;
+    row.innerHTML = `<span class="wk-day">${o.d}:</span><span class="wk-time">${right}</span>`;
     wh.appendChild(row);
   });
 }
@@ -759,7 +767,7 @@ function renderClosure(){
   const cerrada   = estado==='cerrada';
   const porcerrar = estado==='porcerrar';
   const cannotBuy = cerrada || porcerrar;
-  const anyWeek   = CLOSURE.active && Object.values(CLOSURE.week).some(Boolean);
+  const anyWeek   = CLOSURE.active && Object.values(CLOSURE.week).some(v=>v!=='open');
 
   // Fila de estado (colapsable)
   const row=document.getElementById('statusRow');
@@ -789,9 +797,9 @@ function renderClosure(){
 
   // URL
   const url=new URL(location);
-  const closedDays=WEEK.map(o=>o.k).filter(k=>CLOSURE.week[k]);
-  if(CLOSURE.active && (estado!=='abierta' || closedDays.length)){
-    const parts=[estado]; if(closedDays.length) parts.push('sem.'+closedDays.join('.'));
+  const changedDays=WEEK.filter(o=>CLOSURE.week[o.k]!=='open').map(o=>o.k+':'+CLOSURE.week[o.k]);
+  if(CLOSURE.active && (estado!=='abierta' || changedDays.length)){
+    const parts=[estado]; if(changedDays.length) parts.push('sem.'+changedDays.join('.'));
     url.searchParams.set('cierre', parts.join('-'));
   } else url.searchParams.delete('cierre');
   history.replaceState(null,'',url);
@@ -917,8 +925,9 @@ document.querySelectorAll('#mbSalas .chip-btn').forEach(btn=>{
 document.querySelectorAll('#weekChips .chip-btn').forEach(btn=>{
   btn.onclick=()=>{
     const d=btn.dataset.day;
-    CLOSURE.week[d]=!CLOSURE.week[d];
-    btn.classList.toggle('active', CLOSURE.week[d]);
+    CLOSURE.week[d]=WEEK_CYCLE[CLOSURE.week[d]];
+    btn.classList.toggle('mod', CLOSURE.week[d]==='mod');
+    btn.classList.toggle('cerrada', CLOSURE.week[d]==='cerrada');
     renderClosure();
   };
 });
@@ -934,9 +943,9 @@ document.querySelectorAll('#weekChips .chip-btn').forEach(btn=>{
     const est=parts[0];
     if(['abierta','porcerrar','cerrada'].includes(est)) CLOSURE.estado=est;
     const sem=parts.find(p=>p.startsWith('sem.'));
-    if(sem) sem.slice(4).split('.').forEach(d=>{ if(d in CLOSURE.week) CLOSURE.week[d]=true; });
+    if(sem) sem.slice(4).split('.').forEach(tok=>{ const [d,st]=tok.split(':'); if(d in CLOSURE.week) CLOSURE.week[d]=(st==='mod')?'mod':'cerrada'; });
     document.querySelector('.seg[data-key="estado"]').querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===CLOSURE.estado));
-    document.querySelectorAll('#weekChips .chip-btn').forEach(b=>b.classList.toggle('active', CLOSURE.week[b.dataset.day]));
+    document.querySelectorAll('#weekChips .chip-btn').forEach(b=>{ const st=CLOSURE.week[b.dataset.day]; b.classList.toggle('mod', st==='mod'); b.classList.toggle('cerrada', st==='cerrada'); });
   }
   const mb=q.get('mb');
   if(mb && !c){ // cierre tiene prioridad si vinieran ambos
