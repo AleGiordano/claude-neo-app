@@ -247,7 +247,7 @@ body{
 .mb-promo{width:100%; border:1px solid var(--secondary-300); border-radius:12px; overflow:hidden;
   background:linear-gradient(174deg, #002AE1 15%, var(--surface-0) 24%);}
 .mbp-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 10px 16px}
-.mbp-title{display:inline-flex; align-items:center; gap:8px; font-family:var(--body); font-weight:700; font-size:16px; color:var(--text-950)}
+.mbp-title{display:inline-flex; align-items:center; gap:8px; font-family:var(--body); font-weight:700; font-size:16px; color:var(--text-950); white-space:nowrap}
 .mbp-dot{width:10px; height:10px; border-radius:999px; background:var(--secondary-400); animation:mbpulse 1.6s ease-in-out infinite}
 @keyframes mbpulse{0%,100%{box-shadow:0 0 0 3px rgba(51,88,249,.35)}50%{box-shadow:0 0 0 8px rgba(51,88,249,0)}}
 .mbp-right{display:inline-flex; align-items:center; gap:10px}
@@ -694,7 +694,10 @@ function renderMB(){
   document.getElementById('priceHead').hidden=on;
   document.getElementById('priceExample').hidden=on;
   if(on){
-    document.getElementById('mbPromoDias').textContent=dias;
+    // "Marcha blanca" rompía el header de la promo (doble línea) → en sin fin dejamos solo GRATIS
+    const pd=document.getElementById('mbPromoDias');
+    pd.hidden = MB.vigencia==='sinfin';
+    if(MB.vigencia!=='sinfin') pd.textContent='7 días';
     document.getElementById('mbPromoText').textContent = anySala
       ? 'Vas a tener libre acceso a nuestras zonas y salas:'
       : 'Libre acceso al gimnasio por tiempo limitado';
