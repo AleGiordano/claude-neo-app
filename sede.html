@@ -22,6 +22,7 @@
   --text-600:#D4D4D4; --text-800:#E5E5E5; --text-900:#F5F5F5; --text-950:#FEFEFF;
   --success-0:#1B3224; --success-500:#BDE986; --success-700:#E9FFA1; --success-800:#EFFFBA; --success-bg:#1C2B21;
   --error-0:#531313; --error-500:#F4785B; --error-800:#FECACA;
+  --warning-400:#EEBB39; --warning-300:#F2CF6B;
   --display:'Sora', ui-sans-serif, system-ui;
   --body:'Wix Madefor Display', ui-sans-serif, system-ui;
 }
@@ -246,6 +247,28 @@ body{
 .section{padding-bottom:20px}
 .services{padding-bottom:28px}
 
+/* ===== Estado / horarios (fila colapsable + semana) ===== */
+.status-row{display:flex; align-items:center; gap:8px; width:100%; border:0; background:transparent; cursor:pointer; padding:4px 0; text-align:left; color:var(--text-900)}
+.status-row .st-ic{flex-shrink:0; display:flex; color:var(--text-800)}
+.status-row .st-ic svg{width:16px; height:16px}
+.status-row .st-text{flex:1; min-width:0; font-family:var(--body); font-size:14px; line-height:24px}
+.status-row .st-estado{font-weight:600; color:var(--text-950)}
+.status-row .st-detail{font-weight:400; color:var(--surface-800); margin-left:6px}
+.status-row .st-chev{flex-shrink:0; display:flex; color:var(--surface-800); transition:transform .25s ease}
+.status-row .st-chev svg{width:18px; height:18px}
+.status-row.open .st-chev{transform:rotate(90deg)}
+/* Estado: próxima a cerrar (ámbar) / cerrada (gris) */
+.status-row.porcerrar .st-ic, .status-row.porcerrar .st-estado{color:var(--warning-400)}
+.status-row.cerrada .st-ic, .status-row.cerrada .st-estado{color:var(--surface-800)}
+.status-sub{display:block; margin-top:2px; font-family:var(--body); font-weight:400; font-size:13px; line-height:20px; color:var(--surface-800)}
+.week-hours{margin-top:10px; display:flex; flex-direction:column}
+.wk-row{display:flex; align-items:center; justify-content:space-between; height:32px; opacity:.85}
+.wk-day{font-family:var(--body); font-weight:500; font-size:14px; color:var(--text-800)}
+.wk-time{display:inline-flex; align-items:center; gap:6px; width:150px; font-family:var(--body); font-weight:500; font-size:14px; color:var(--text-800)}
+.wk-time svg{width:14px; height:14px; color:var(--text-800)}
+.wk-row.changed .wk-day, .wk-row.changed .wk-time, .wk-row.changed .wk-time svg{color:var(--warning-400)}
+.wk-row.changed{opacity:1}
+
 /* ===== Marcha blanca ===== */
 /* GRATIS badge — idéntico en todos lados (hero, promo, barra, sheet) */
 .gratis-badge{display:inline-flex; align-items:center; vertical-align:middle; padding:3px 9px; border-radius:7px; background:var(--success-500); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:11px; line-height:1}
@@ -326,29 +349,26 @@ body{
     </div>
     <div class="cd-body" id="cierreBody">
       <div class="cd-group">
-        <span class="cd-label">Momento</span>
-        <div class="seg" data-key="momento">
-          <button class="seg-btn active" data-val="manana">Cierra mañana</button>
-          <button class="seg-btn" data-val="hoy">Cerrada hoy</button>
-          <button class="seg-btn" data-val="porcerrar">Por cerrar</button>
+        <span class="cd-label">Estado de hoy</span>
+        <div class="seg" data-key="estado">
+          <button class="seg-btn active" data-val="abierta">Abierta</button>
+          <button class="seg-btn" data-val="porcerrar">Próxima a cerrar</button>
+          <button class="seg-btn" data-val="cerrada">Cerrada hoy</button>
         </div>
       </div>
-      <div class="cd-group cd-when">
-        <span class="cd-label">Días</span>
-        <div class="seg" data-key="dias">
-          <button class="seg-btn active" data-val="unico">Día único</button>
-          <button class="seg-btn" data-val="rango">Rango de días</button>
+      <div class="cd-group">
+        <span class="cd-label">Cierres en la semana</span>
+        <div class="chips" id="weekChips">
+          <button class="chip-btn" data-day="lun">Lun</button>
+          <button class="chip-btn" data-day="mar">Mar</button>
+          <button class="chip-btn" data-day="mie">Mié</button>
+          <button class="chip-btn" data-day="jue">Jue</button>
+          <button class="chip-btn" data-day="vie">Vie</button>
+          <button class="chip-btn" data-day="sab">Sáb</button>
+          <button class="chip-btn" data-day="dom">Dom</button>
         </div>
       </div>
-      <div class="cd-group cd-when">
-        <span class="cd-label">Horario</span>
-        <div class="seg" data-key="horario">
-          <button class="seg-btn active" data-val="todo">Todo el día</button>
-          <button class="seg-btn" data-val="uno">Un rango</button>
-          <button class="seg-btn" data-val="doble">Doble rango</button>
-        </div>
-      </div>
-      <p class="cd-note">El cierre se refleja en el <b>header</b> y sobre los <b>precios dinámicos</b>.</p>
+      <p class="cd-note">El estado se muestra en la <b>fila de horarios</b>; los días cerrados aparecen en <b>la semana</b>.</p>
     </div>
   </div>
 
@@ -422,7 +442,7 @@ body{
 
       <!-- Info -->
       <div class="info">
-        <div class="info-top">
+        <div class="info-top" id="infoTop">
           <span class="badge-wrap">
             <span class="badge-occ" id="occBadge">
               <span class="t">Ocupación baja:</span>
@@ -442,20 +462,16 @@ body{
 
         <h2 class="sede-title">NEO Florián Roa</h2>
 
-        <div class="hours">
-          <div class="row">
-            <span class="day"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Lunes a Jueves:</span>
-            <span class="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 6:00 - 23:00 hrs</span>
-          </div>
-          <div class="row">
-            <span class="day indent">Viernes:</span>
-            <span class="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 6:00 - 22:00 hrs</span>
-          </div>
-          <div class="row">
-            <span class="day indent">Sábado y Domingo:</span>
-            <span class="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 9:00 - 14:00 hrs</span>
-          </div>
-        </div>
+        <!-- Estado / horarios (fila colapsable → semana completa) -->
+        <button class="status-row" id="statusRow" type="button" onclick="toggleWeek()">
+          <span class="st-ic" id="stIc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </span>
+          <span class="st-text"><span class="st-estado" id="stEstado">Abierta</span> <span class="st-detail" id="stDetail">Cierra a las 23:00 hs</span></span>
+          <span class="st-chev" id="stChev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
+        </button>
+        <span class="status-sub" id="statusSub" hidden>Cambios en los horarios semanales</span>
+        <div class="week-hours" id="weekHours" hidden></div>
 
         <div class="howto">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -463,16 +479,6 @@ body{
           <a href="#" onclick="flash('Abrir mapa'); return false;">Avenida Raúl Labbé, 12613</a>
         </div>
 
-        <!-- Cierre programado (se activa desde la caja de control) -->
-        <div class="closure-box" id="closureBox" hidden>
-          <span class="cb-ic">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17"/><path d="M14 12v.5"/></svg>
-          </span>
-          <div class="cb-copy">
-            <span class="cb-title">Cierre programado</span>
-            <span class="cb-desc" id="closureDesc">Cierra mañana, jueves 19. Cerrado todo el día</span>
-          </div>
-        </div>
       </div>
 
       <!-- Precios -->
@@ -694,31 +700,19 @@ function closeSheet(){
    Combinaciones: momento (manana|hoy|porcerrar) · dias (unico|rango) · horario (todo|uno|doble)
    Wordings CONFIRMADOS del Figma: "Cierra mañana" + día único (todo/uno/doble).
    El resto son DRAFT para afinar. */
-const CLOSURE = { active:false, momento:'manana', dias:'unico', horario:'todo' };
-
-function horarioTxt(h){
-  if(h==='doble') return 'de 09:00 a 12:00 y de 15:00 a 18:00 hs';
-  if(h==='uno')   return 'de 14:00 a 18:00 hs';
-  return null; // todo el día
-}
-function diasTxt(momento, dias){
-  if(dias==='rango') return 'del jueves 19 al domingo 22';
-  return momento==='hoy' ? 'hoy, jueves 19' : 'mañana, jueves 19';
-}
-function headerWording(c){
-  if(c.momento==='porcerrar')
-    return 'La sede está por cerrar. Ya no se pueden comprar pases por hoy.';
-  const verbo = c.momento==='hoy' ? 'Cerrada' : 'Cierra';
-  // Rango de días: SOLO un rango horario. La 1ª hora aplica al primer día y la 2ª al último.
-  if(c.dias==='rango'){
-    if(c.horario==='todo') return `${verbo} del jueves 19 al domingo 22. Cerrado todo el día`;
-    return `${verbo} desde el jueves 19 a las 14:00 hasta el domingo 22 a las 18:00 hs`;
-  }
-  // Día único: puede tener todo el día / un rango / doble rango
-  const hor = horarioTxt(c.horario);
-  return hor ? `${verbo} ${diasTxt(c.momento, c.dias)} ${hor}` : `${verbo} ${diasTxt(c.momento, c.dias)}. Cerrado todo el día`;
-}
-const PRICE_DESC = 'Te mostramos los precios por ocupación estimada de la próxima apertura de la sede.';
+const CLOSURE = { active:false, estado:'abierta', week:{lun:false,mar:false,mie:false,jue:false,vie:false,sab:false,dom:false} };
+const WEEK = [
+  {k:'lun', d:'Lunes',     t:'6:00 - 23:00 hrs'},
+  {k:'mar', d:'Martes',    t:'6:00 - 23:00 hrs'},
+  {k:'mie', d:'Miércoles', t:'6:00 - 23:00 hrs'},
+  {k:'jue', d:'Jueves',    t:'6:00 - 22:00 hrs'},
+  {k:'vie', d:'Viernes',   t:'6:00 - 22:00 hrs'},
+  {k:'sab', d:'Sábado',    t:'9:00 - 14:00 hrs'},
+  {k:'dom', d:'Domingo',   t:'9:00 - 14:00 hrs'},
+];
+const CLOCK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const BLOCK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>';
+const PRICE_DESC = 'Solo puedes visualizar los precios por ocupación estimada de la próxima apertura de la sede.';
 const WARN_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
 
 function setBuyBar(cannot, chipHtml){
@@ -740,54 +734,66 @@ function setBuyBar(cannot, chipHtml){
   }
 }
 
-function syncHorario(){
-  // Doble rango solo aplica a cierres de 1 solo día. En rango de días se deshabilita.
-  const dobleBtn = document.querySelector('.seg[data-key="horario"] .seg-btn[data-val="doble"]');
-  const esRango = CLOSURE.dias==='rango';
-  dobleBtn.disabled = esRango;
-  if(esRango && CLOSURE.horario==='doble'){
-    CLOSURE.horario='uno';
-    document.querySelectorAll('.seg[data-key="horario"] .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val==='uno'));
-  }
+function buildWeek(){
+  const wh=document.getElementById('weekHours'); wh.innerHTML='';
+  WEEK.forEach(o=>{
+    const closed = CLOSURE.active && CLOSURE.week[o.k];
+    const row=document.createElement('div');
+    row.className='wk-row'+(closed?' changed':'');
+    row.innerHTML = `<span class="wk-day">${o.d}:</span><span class="wk-time">${closed ? BLOCK_SVG+' Cerrada' : CLOCK_SVG+' '+o.t}</span>`;
+    wh.appendChild(row);
+  });
+}
+
+function toggleWeek(){
+  const wh=document.getElementById('weekHours');
+  const willOpen=wh.hidden;
+  wh.hidden=!willOpen;
+  document.getElementById('statusRow').classList.toggle('open', willOpen);
 }
 
 function renderClosure(){
-  syncHorario();
-  const box=document.getElementById('closureBox');
   const notice=document.getElementById('priceNotice');
   const hero=document.querySelector('.hero');
-  const cerrada   = CLOSURE.active && CLOSURE.momento==='hoy';        // sede cerrada hoy
-  const porcerrar = CLOSURE.active && CLOSURE.momento==='porcerrar';  // fin de día
+  const estado   = CLOSURE.active ? CLOSURE.estado : 'abierta';
+  const cerrada   = estado==='cerrada';
+  const porcerrar = estado==='porcerrar';
   const cannotBuy = cerrada || porcerrar;
+  const anyWeek   = CLOSURE.active && Object.values(CLOSURE.week).some(Boolean);
 
-  // Header "Cierre programado": solo cierre programado (mañana/hoy). El fin de día NO lo usa.
-  if(CLOSURE.active && CLOSURE.momento!=='porcerrar'){
-    document.getElementById('closureDesc').textContent = headerWording(CLOSURE);
-    box.hidden=false;
-  } else box.hidden=true;
+  // Fila de estado (colapsable)
+  const row=document.getElementById('statusRow');
+  row.classList.toggle('porcerrar', porcerrar);
+  row.classList.toggle('cerrada', cerrada);
+  const est=document.getElementById('stEstado'), det=document.getElementById('stDetail');
+  if(porcerrar){ est.textContent='Próxima a cerrar'; det.textContent='Cierra a las 23:00 hs'; }
+  else if(cerrada){ est.textContent='Cerrada'; det.textContent='Abre 6:00 am mañana'; }
+  else { est.textContent='Abierta'; det.textContent='Cierra a las 23:00 hs'; }
+  // Subtítulo "Cambios en los horarios semanales" (solo si hay cierres en la semana y la sede está abierta)
+  document.getElementById('statusSub').hidden = !(anyWeek && !cannotBuy);
+  buildWeek();
 
-  // La UI de la sede cambia cuando está cerrada (hoy): hero en grises + badge cerrada
+  // Top (ocupación + Más info) se oculta cuando está cerrada / próxima a cerrar; hero gris si cerrada
   hero.classList.toggle('gray', cerrada);
-  document.getElementById('occBadge').hidden = cerrada;
-  document.getElementById('occClosed').hidden = !cerrada;
-  document.getElementById('moreInfo').hidden = cerrada;
+  document.getElementById('infoTop').hidden = cannotBuy;
 
-  // Cartel sobre precios dinámicos (misma UI que el header)
+  // Cartel sobre los precios dinámicos
   if(cannotBuy){
     document.getElementById('priceNoticeTitle').textContent = cerrada ? 'Sede cerrada' : 'Sede próxima a cerrar';
     document.getElementById('priceNoticeText').textContent = PRICE_DESC;
     notice.hidden=false;
   } else notice.hidden=true;
 
-  // Barra de compra: no se puede comprar (cerrada / por cerrar)
+  // Barra de compra: no se puede comprar (cerrada / próxima a cerrar)
   setBuyBar(cannotBuy, cerrada ? (WARN_SVG+'Sede cerrada') : 'No se pueden comprar más pases por hoy');
 
-  // "por cerrar" es fin de día: días/horario no aplican
-  document.querySelectorAll('.cd-when').forEach(el=>el.classList.toggle('disabled', porcerrar));
-
+  // URL
   const url=new URL(location);
-  if(CLOSURE.active) url.searchParams.set('cierre', porcerrar ? 'porcerrar' : [CLOSURE.momento,CLOSURE.dias,CLOSURE.horario].join('-'));
-  else url.searchParams.delete('cierre');
+  const closedDays=WEEK.map(o=>o.k).filter(k=>CLOSURE.week[k]);
+  if(CLOSURE.active && (estado!=='abierta' || closedDays.length)){
+    const parts=[estado]; if(closedDays.length) parts.push('sem.'+closedDays.join('.'));
+    url.searchParams.set('cierre', parts.join('-'));
+  } else url.searchParams.delete('cierre');
   history.replaceState(null,'',url);
   renderMB();
 }
@@ -907,6 +913,16 @@ document.querySelectorAll('#mbSalas .chip-btn').forEach(btn=>{
   };
 });
 
+// Cierres en la semana (chips multi-select)
+document.querySelectorAll('#weekChips .chip-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    const d=btn.dataset.day;
+    CLOSURE.week[d]=!CLOSURE.week[d];
+    btn.classList.toggle('active', CLOSURE.week[d]);
+    renderClosure();
+  };
+});
+
 (function init(){
   const q=new URLSearchParams(location.search);
   const c=q.get('cierre');
@@ -914,12 +930,13 @@ document.querySelectorAll('#mbSalas .chip-btn').forEach(btn=>{
     CLOSURE.active=true;
     document.getElementById('cierreToggle').checked=true;
     document.getElementById('cierreSection').classList.add('on');
-    if(c==='porcerrar') CLOSURE.momento='porcerrar';
-    else{ const [m,d,h]=c.split('-'); if(m)CLOSURE.momento=m; if(d)CLOSURE.dias=d; if(h)CLOSURE.horario=h; }
-    document.querySelectorAll('.cierre-dock .seg:not([data-mb])').forEach(seg=>{
-      const val=CLOSURE[seg.dataset.key];
-      seg.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===val));
-    });
+    const parts=c.split('-');
+    const est=parts[0];
+    if(['abierta','porcerrar','cerrada'].includes(est)) CLOSURE.estado=est;
+    const sem=parts.find(p=>p.startsWith('sem.'));
+    if(sem) sem.slice(4).split('.').forEach(d=>{ if(d in CLOSURE.week) CLOSURE.week[d]=true; });
+    document.querySelector('.seg[data-key="estado"]').querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===CLOSURE.estado));
+    document.querySelectorAll('#weekChips .chip-btn').forEach(b=>b.classList.toggle('active', CLOSURE.week[b.dataset.day]));
   }
   const mb=q.get('mb');
   if(mb && !c){ // cierre tiene prioridad si vinieran ambos
