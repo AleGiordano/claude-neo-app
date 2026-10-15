@@ -247,24 +247,60 @@ body{
 .services{padding-bottom:28px}
 
 /* ===== Marcha blanca ===== */
-.gratis-badge{display:inline-flex; align-items:center; padding:2px 8px; border-radius:7px; background:var(--success-500); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:11px; line-height:1}
-.mb-hero-badge{position:absolute; left:16px; bottom:12px; z-index:3; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:rgba(15,18,23,.72); backdrop-filter:blur(6px)}
+/* GRATIS badge — idéntico en todos lados (hero, promo, barra, sheet) */
+.gratis-badge{display:inline-flex; align-items:center; vertical-align:middle; padding:3px 9px; border-radius:7px; background:var(--success-500); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:11px; line-height:1}
+.mb-hero-badge{position:absolute; left:16px; top:12px; z-index:3; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:rgba(15,18,23,.72); backdrop-filter:blur(6px)}
 .mb-hero-badge .mb-dias{font-family:var(--display); font-weight:700; font-size:14px; color:#fff}
 
 .mb-promo{width:100%; border:1px solid var(--secondary-300); border-radius:12px; overflow:hidden;
   background:linear-gradient(174deg, #002AE1 15%, var(--surface-0) 24%);}
-.mbp-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 10px 16px}
+.mbp-head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 14px 14px 16px}
 .mbp-title{display:inline-flex; align-items:center; gap:8px; font-family:var(--body); font-weight:700; font-size:16px; color:var(--text-950); white-space:nowrap}
 .mbp-dot{width:10px; height:10px; border-radius:999px; background:var(--secondary-400); animation:mbpulse 1.6s ease-in-out infinite}
 @keyframes mbpulse{0%,100%{box-shadow:0 0 0 3px rgba(51,88,249,.35)}50%{box-shadow:0 0 0 8px rgba(51,88,249,0)}}
 .mbp-right{display:inline-flex; align-items:center; gap:10px}
 .mbp-dias{font-family:var(--display); font-weight:700; font-size:14px; color:#fff; letter-spacing:.2px; white-space:nowrap}
-.mbp-box{margin:0 1px 1px; border:1px solid var(--secondary-300); border-radius:12px; padding:24px; display:flex; flex-direction:column; align-items:center; gap:16px;
+.mbp-box{margin:3px; border:1px solid var(--secondary-300); border-radius:12px; padding:28px 24px; display:flex; flex-direction:column; align-items:center; gap:22px;
   background:linear-gradient(162deg, #0021AF 22%, var(--surface-0) 46%)}
-.mbp-text{font-family:var(--body); font-weight:700; font-size:14px; line-height:22px; color:var(--text-950); text-align:center}
-.mbp-price{display:inline-flex; align-items:baseline; gap:8px; font-family:var(--display); font-weight:600; font-size:30px; line-height:1; color:var(--text-950)}
-.mbp-strike{font-family:var(--body); font-weight:400; font-size:14px; color:#9A9DA3; text-decoration:line-through}
-.price-gratis{display:inline-block; vertical-align:middle; margin-left:8px; padding:2px 8px; border-radius:6px; background:var(--success-500); color:var(--success-bg); font-family:var(--body); font-weight:700; font-size:11px}
+.mbp-text{font-family:var(--body); font-weight:700; font-size:15px; line-height:24px; color:var(--text-950); text-align:center}
+.mbp-price{display:inline-flex; align-items:baseline; gap:10px; font-family:var(--display); font-weight:600; font-size:32px; line-height:1; color:var(--text-950)}
+.mbp-strike{font-family:var(--body); font-weight:400; font-size:15px; color:#9A9DA3; text-decoration:line-through}
+
+/* ===== Bottom sheet expandido (precios por hora) ===== */
+.sheet-backdrop{position:absolute; inset:0; z-index:250; background:rgba(8,10,14,.6); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px)}
+.sheet-expanded{position:absolute; left:0; right:0; bottom:0; z-index:260; max-height:90%; display:flex; flex-direction:column;
+  background:var(--surface-200); border-radius:24px 24px 0 0; box-shadow:0 2px 70px rgba(0,46,247,.5);
+  padding:8px 18px 20px; transform:translateY(110%); transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.sheet-expanded.open{transform:translateY(0)}
+.se-grip{width:44px; height:5px; border-radius:100px; background:var(--border-100); align-self:center; margin-bottom:12px; cursor:pointer}
+.se-head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:4px}
+.se-head .buy-left{display:flex; flex-direction:column; gap:4px}
+.se-head .lab{font-family:var(--body); font-weight:500; font-size:13px; color:var(--secondary-600)}
+.se-head .price{font-family:var(--display); font-weight:700; font-size:22px; line-height:28px; color:var(--text-950)}
+.se-title{margin:16px 0 12px; font-family:var(--display); font-weight:700; font-size:18px; color:var(--text-950)}
+.se-days{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px}
+.se-days::-webkit-scrollbar{display:none}
+.se-day{flex:0 0 auto; min-width:48px; height:54px; border:0; cursor:pointer; border-radius:12px; background:var(--surface-300); color:var(--text-800);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:0 10px; font-family:var(--display)}
+.se-day .dnum{font-weight:700; font-size:15px; color:var(--text-950)}
+.se-day .dlbl{font-weight:500; font-size:11px; color:var(--surface-800)}
+.se-day .dhoy{font-weight:700; font-size:14px; color:var(--text-950)}
+.se-day.active{background:var(--secondary-300)}
+.se-day.active .dnum, .se-day.active .dlbl, .se-day.active .dhoy{color:#fff}
+.se-cols{display:flex; align-items:center; justify-content:space-between; margin:18px 0 2px; font-family:var(--display); font-weight:700; font-size:14px; color:var(--text-950)}
+.se-cols .c2{display:inline-flex; align-items:center; gap:6px; font-weight:500; color:var(--surface-800); font-size:13px}
+.se-cols .c2 svg{width:14px; height:14px}
+.se-rows{overflow-y:auto; scrollbar-width:none}
+.se-rows::-webkit-scrollbar{display:none}
+.se-row{display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid rgba(255,255,255,.06)}
+.se-row.past{opacity:.4}
+.se-row.current{border-left:3px solid var(--secondary-400); padding-left:12px; margin-left:-12px}
+.se-row .rh{font-family:var(--display); font-weight:600; font-size:15px; color:var(--text-950)}
+.se-row .ru{font-family:var(--body); font-weight:400; font-size:12px; color:var(--surface-800); margin-top:2px}
+.se-row .rr{text-align:right}
+.se-row .rprice{font-family:var(--display); font-weight:700; font-size:14px; color:var(--text-950)}
+.se-row .rgratis{font-family:var(--display); font-weight:700; font-size:14px; color:var(--success-500)}
+.se-row .rstrike{display:block; font-family:var(--body); font-weight:400; font-size:12px; color:#9A9DA3; text-decoration:line-through; margin-top:2px}
 
 /* Toast */
 .toast{position:absolute; top:56px; left:50%; transform:translateX(-50%) translateY(-16px); z-index:300; max-width:calc(100% - 32px); padding:12px 16px; border-radius:12px; background:rgba(33,38,49,.97); border:1px solid var(--border-50); color:var(--text-950); font-family:var(--display); font-weight:500; font-size:13px; box-shadow:0 2px 10px rgba(38,38,38,.5); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap}
@@ -512,7 +548,7 @@ body{
             </div>
           </div>
         </div>
-        <button class="more-hours" type="button" onclick="flash('Más horarios')">Más horarios</button>
+        <button class="more-hours" type="button" onclick="openSheet()">Más horarios</button>
       </div>
 
       <!-- Explorar esta sede -->
@@ -549,8 +585,8 @@ body{
 
     </div>
 
-    <!-- Barra de compra fija -->
-    <div class="buy-bar">
+    <!-- Barra de compra fija (tap para expandir) -->
+    <div class="buy-bar" onclick="openSheet()">
       <div class="handle"></div>
       <div class="buy-chip" id="buyChip" hidden>No se pueden comprar más pases por hoy</div>
       <div class="buy-row">
@@ -559,8 +595,25 @@ body{
           <span class="tag" id="buyTag">Precio más bajo</span>
           <span class="price" id="buyPrice">$1.000</span>
         </div>
-        <button class="buy-btn" id="buyBtn" type="button" onclick="onBuy()">Comprar pase</button>
+        <button class="buy-btn" id="buyBtn" type="button" onclick="event.stopPropagation(); onBuy()">Comprar pase</button>
       </div>
+    </div>
+
+    <!-- Bottom sheet expandido: precios por hora -->
+    <div class="sheet-backdrop" id="sheetBackdrop" hidden onclick="closeSheet()"></div>
+    <div class="sheet-expanded" id="sheetExpanded">
+      <div class="se-grip" onclick="closeSheet()"></div>
+      <div class="se-head">
+        <div class="buy-left">
+          <span class="lab" id="seLab">Precio:</span>
+          <span class="price" id="sePrice">$0 <span class="gratis-badge">GRATIS</span></span>
+        </div>
+        <button class="buy-btn" type="button" onclick="flash('Comprar pase')">Comprar pase</button>
+      </div>
+      <h3 class="se-title">Precios dinámicos</h3>
+      <div class="se-days" id="seDays"></div>
+      <div class="se-cols"><span>Hora de ingreso</span><span class="c2">Precio estimado <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg></span></div>
+      <div class="se-rows" id="seRows"></div>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -591,6 +644,50 @@ let toastId=null;
 function flash(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(toastId); toastId=setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+/* ===================== Bottom sheet: precios por hora ===================== */
+const SHEET_DAYS = [{hoy:true},{n:'16',l:'Mar'},{n:'17',l:'Mié'},{n:'18',l:'Jue'},{n:'19',l:'Vie'},{n:'20',l:'Sáb'},{n:'21',l:'Dom'}];
+const SHEET_HOURS = [
+  {h:'7:00 AM',  u:'hasta las 7:59 AM',  p:'$3.000', past:true},
+  {h:'8:00 AM',  u:'hasta las 8:59 AM',  p:'$3.000', past:true},
+  {h:'9:00 AM',  u:'hasta las 9:59 AM',  p:'$3.000', past:true},
+  {h:'10:00 AM', u:'hasta las 10:59 AM', p:'$2.000', current:true},
+  {h:'11:00 AM', u:'hasta las 11:59 AM', p:'$3.000'},
+  {h:'12:00 PM', u:'hasta las 12:59 PM', p:'$5.000'},
+  {h:'1:00 PM',  u:'hasta las 1:59 PM',  p:'$4.000'},
+  {h:'2:00 PM',  u:'hasta las 2:59 PM',  p:'$4.000'},
+  {h:'3:00 PM',  u:'hasta las 3:59 PM',  p:'$5.000'},
+];
+function buildSheet(){
+  const mb = MB.active;
+  document.getElementById('seLab').textContent = mb ? 'Precio:' : 'Precio ahora:';
+  document.getElementById('sePrice').innerHTML = mb ? '$0 <span class="gratis-badge">GRATIS</span>' : '$1.000';
+  const dd=document.getElementById('seDays'); dd.innerHTML='';
+  SHEET_DAYS.forEach((d,i)=>{
+    const b=document.createElement('button'); b.className='se-day'+(i===0?' active':'');
+    b.innerHTML = d.hoy ? '<span class="dhoy">Hoy</span>' : `<span class="dnum">${d.n}</span><span class="dlbl">${d.l}</span>`;
+    b.onclick=()=>{ dd.querySelectorAll('.se-day').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+    dd.appendChild(b);
+  });
+  const rr=document.getElementById('seRows'); rr.innerHTML='';
+  SHEET_HOURS.forEach(o=>{
+    const row=document.createElement('div');
+    row.className='se-row'+(o.past?' past':'')+(o.current?' current':'');
+    const right = mb ? `<span class="rgratis">GRATIS</span><span class="rstrike">${o.p}</span>` : `<span class="rprice">${o.p}</span>`;
+    row.innerHTML = `<div class="rl"><div class="rh">${o.h}</div><div class="ru">${o.u}</div></div><div class="rr">${right}</div>`;
+    rr.appendChild(row);
+  });
+}
+function openSheet(){
+  buildSheet();
+  document.getElementById('sheetBackdrop').hidden=false;
+  const s=document.getElementById('sheetExpanded');
+  requestAnimationFrame(()=>s.classList.add('open'));
+}
+function closeSheet(){
+  document.getElementById('sheetExpanded').classList.remove('open');
+  setTimeout(()=>{ document.getElementById('sheetBackdrop').hidden=true; }, 320);
 }
 
 /* ===================== CIERRES =====================
@@ -707,7 +804,7 @@ function setBuyBarMB(){
   chip.hidden=true;
   lab.textContent='Precio:';
   tag.hidden=true;
-  price.innerHTML='$0 <span class="price-gratis">GRATIS</span>';
+  price.innerHTML='$0 <span class="gratis-badge">GRATIS</span>';
   btn.textContent='Comprar pase'; btn.classList.remove('alt'); btn.dataset.action='comprar';
 }
 
